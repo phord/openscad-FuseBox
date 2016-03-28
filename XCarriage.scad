@@ -18,7 +18,7 @@ groove_collar_offset = 2 ; // Distance from top of tower to groove-collar
 groove_collar_height = 5.7;
 groove_collar_diameter = 12 ;
 groove_diameter = 16 ;
-e3d_cooling_diameter = 24 ;
+e3d_cooling_diameter = 23 ; // 22.3 actual
 e3d_cooling_height = 30 ;
 
 // Lateral carriage struts
@@ -124,11 +124,12 @@ module x_carriage_struts() {
 }
 
 module x_carriage_struts_gaps() {
-    len = strut_len - hotend_tower_thickness ;
-    translate([(carriage_length-e3d_cooling_diameter)/2,-len/2,-0.001]) 
+    len = strut_len - hotend_tower_thickness - 0.7;
+    translate([(carriage_length-e3d_cooling_diameter)/2,-rod_spacing/2+bearing_diameter/2+0.7,-0.001]) 
         cube([e3d_cooling_diameter, len , strut_height]);
 }
 
+rotate([0,-90,0])
 difference() {
     union() {
         rotate([0,90,0])
