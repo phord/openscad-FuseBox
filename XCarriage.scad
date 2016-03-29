@@ -88,14 +88,16 @@ hotend_grip_pos = [
 
 module hotend_tower() {
     // Hot-end mount platform
-    translate(hotend_tower_pos)
+    rotate([0,-90,0])
+        translate(hotend_tower_pos)
         cube([hotend_tower_width,hotend_tower_thickness,hotend_tower_height]);
 }
 
 module hotend_grip() {
     // Hot-end neck grip (e3d)
-    translate(hotend_tower_pos)
-      translate(hotend_grip_pos)
+    rotate([0,-90,0])
+        translate(hotend_tower_pos)
+        translate(hotend_grip_pos)
         cube([hotend_grip_width,hotend_grip_thickness+0.1,hotend_grip_height]);
 }
 
@@ -109,17 +111,19 @@ module hotend_mount() {
 module hotend_mount_gaps() {
     // Carve out space for the e3d hotend
     // Hot-end neck grip (e3d)
+    rotate([0,-90,0]) {
         translate(hotend_tower_pos)
             translate(hotend_grip_pos) {
                 translate([hotend_grip_width/2,0,-0.5])
-                    cylinder(h=hotend_grip_height+1, r=groove_collar_diameter/2);
-                translate([hotend_grip_width/2,0,hotend_grip_height-groove_collar_offset])
-                    cylinder(h=groove_collar_offset+0.1, r=groove_diameter/2);
-                translate([hotend_grip_width/2,0,-0.5])
-                    cylinder(h=hotend_grip_height-groove_collar_offset-groove_collar_height+0.5, r=groove_diameter/2);
+                cylinder(h=hotend_grip_height+1, r=groove_collar_diameter/2);
+            translate([hotend_grip_width/2,0,hotend_grip_height-groove_collar_offset])
+                cylinder(h=groove_collar_offset+0.1, r=groove_diameter/2);
+            translate([hotend_grip_width/2,0,-0.5])
+                cylinder(h=hotend_grip_height-groove_collar_offset-groove_collar_height+0.5, r=groove_diameter/2);
             }
         translate([carriage_length/2,0,hotend_tower_height-hotend_grip_height-e3d_cooling_height-0.001])
             cylinder(h=e3d_cooling_height, r=e3d_cooling_diameter/2);
+    }
 }
 
 module hotend_mount_overhang() {
@@ -142,32 +146,33 @@ module hotend_mount_support() {
                         rotate([0,-90,0])
                             translate(-hotend_tower_pos)
                                 translate(-hotend_grip_pos)
+                                rotate([0,90,0])
                                     hotend_mount_overhang();
 }
 
 strut_len = rod_spacing-bearing_diameter ;
 module x_carriage_struts() {
-    translate([0,-strut_len/2, 0]) cube([strut_width, strut_len ,strut_height]);
-    translate([carriage_length-strut_width,-strut_len/2, 0]) cube([strut_width, strut_len ,strut_height]);
-    translate([0,-strut_len/2,0.5]) cube([carriage_length, strut_len , strut_plate_height]);
+    rotate([0,-90,0]) {
+        translate([0,-strut_len/2, 0]) cube([strut_width, strut_len ,strut_height]);
+        translate([carriage_length-strut_width,-strut_len/2, 0]) cube([strut_width, strut_len ,strut_height]);
+        translate([0,-strut_len/2,0.5]) cube([carriage_length, strut_len , strut_plate_height]);
+    }
 }
 
 module x_carriage_struts_gaps() {
     len = strut_len - hotend_tower_thickness - 0.7;
-    translate([(carriage_length-e3d_cooling_diameter)/2,-rod_spacing/2+bearing_diameter/2+0.7,-0.001])
+    rotate([0,-90,0])
+        translate([(carriage_length-e3d_cooling_diameter)/2,-rod_spacing/2+bearing_diameter/2+0.7,-0.001])
         cube([e3d_cooling_diameter, len , strut_height]);
 }
 
-rotate([0,-90,0])
     difference() {
         union() {
-            rotate([0,90,0])
-                x_carriage_solid();
+            x_carriage_solid();
             x_carriage_struts();
             hotend_mount();
         }
-        rotate([0,90,0])
-            x_carriage_gaps();
+        x_carriage_gaps();
         x_carriage_struts_gaps();
         hotend_mount_gaps();
     }
