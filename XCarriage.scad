@@ -1,58 +1,84 @@
 // FuseBox X-Carriage design
 
+// Include ghost objects for comprehension/alignment checks
+include_ghosts = false ;
+
 rod_spacing = 43.25 ;
 carriage_length = 47.5 ;
 
 cowling_diameter = 23 ;
 zip_tie_outer_diameter = 21 ;
 bearing_diameter = 16 ;
-carriage_plate_offset = 0.5 ;
+flange_diameter = 12 ;
+flange_thickness = 0.5 ;
 
 // Height of the hotend holder above the bottom of the carriage
-hotend_tower_height = 35.25 ;
+hotend_tower_height = 29.17 ;
 hotend_tower_width = 40 ;
-hotend_tower_thickness = 4 ;
+hotend_tower_thickness = 4.17 ;
 hotend_grip_height = 11 ;
-hotend_grip_thickness = 9 ;
+hotend_grip_thickness = 8.2 ;
 hotend_grip_width = 14 ;
 
 groove_collar_offset = 2 ; // Distance from top of tower to groove-collar
-groove_collar_height = 5.7;
+groove_collar_height = 5.8; // 6mm actual
 groove_collar_diameter = 12 ;
 groove_diameter = 16 ;
-e3d_cooling_diameter = 23 ; // 22.3 actual
-e3d_cooling_height = 30 ;
+
+e3d_groove_mount_height=12.7 ;
+e3d_groove_mount_offset=3.7 ;
+e3d_heatsink_diameter = 23.5 ;  // 22.3 at base for v6lite
+e3d_heatsink_height   = 30 ;
+e3d_hotend_interface_height = 3 ;
+e3d_hotend_height     = 11.5 ;
+e3d_hotend_offset_x   = -4.5 ;
+e3d_hotend_offset_y   = -8 ;
+e3d_hotend_width_x    = 17.5 ;
+e3d_hotend_width_y    = 16 ;
+e3d_hotend_nozzle_height = 5.5 ;
+e3d_hotend_nozzle_diameter = 7 ;
+
 
 // Lateral carriage struts
 strut_width = 3 ;
-strut_height = 7 ;
+strut_height = 7.3 ;
 strut_plate_height = 3.5 ;
+carriage_plate_offset = 0.95 ;
 
-// Hotend cooling fan mount
+// e3d hotend cooling fan mount
 e3d_fan_mount_length = 40 ;
 e3d_fan_mount_thickness = 3 ;
-e3d_fan_mount_height = 4 ;
-e3d_fan_mount_riser = 3 ;
+e3d_fan_mount_height = 6 ;
+e3d_fan_mount_riser = 4 ;
 
 belt_clamp_rib_spacing = 2 ;
 belt_clamp_rib_count = 4 ;
 belt_clamp_rib_size = 1 ;
 belt_clamp_height = 7 ;
-belt_clamp_gap = 1.2 ;
-belt_clamp_thickness = 1.6 ;
+belt_clamp_gap = 1.15 ;
+belt_clamp_thickness = 2.25 ;
 
 // M3 drill holes and nut captures
 m3_radius=1.6 ;
 m3_nut_radius=6.5/2 ;
 m3_nut_depth = 1;
 
+// Cooling fan
+cooling_fan_height = 18.9 ;
+cooling_fan_width = 40 ;
+cooling_fan_base_height = 4 ;
+cooling_fan_thickness = 2 ;
+cooling_fan_riser_width = 7 ;
+
 // Calculated
 belt_clamp_length = belt_clamp_rib_count * belt_clamp_rib_spacing ;
-belt_clamp_support = belt_clamp_height/2 ;
+belt_clamp_support = belt_clamp_height*0.5 ;
+cooling_fan_mount_offset = cooling_fan_width / 10 ;  // 40mm = 4, 30mm = 3
+e3d_fan_mount_offset  = e3d_fan_mount_length / 10 ;  // 40mm = 4, 30mm = 3
 
 hotend_tower_pos = [0,rod_spacing/2-bearing_diameter/2-hotend_tower_thickness, 0.001 ] ;
 hotend_grip_pos = [
-        carriage_length/2-hotend_grip_width/2,
+        carriage_length/2-hotend_grip_width/2+0.27,
         -hotend_tower_thickness-hotend_grip_thickness/2,
         hotend_tower_height - hotend_grip_height] ;
 
@@ -68,6 +94,7 @@ module x_carriage() {
                     hotend_mount();
                     cooling_e3d_fan_mount();
                     cooling_fan_mount();
+                    ghost_e3d_hotend();
                 }
                 x_carriage_gaps();
                 x_carriage_struts_gaps();
@@ -87,7 +114,7 @@ module x_carriage() {
 bc_offset = hotend_tower_pos[1];
 bc_width  = belt_clamp_gap + belt_clamp_thickness ;
 bc_right  = bc_offset - bc_width ;
-bc_left   = -bc_offset ;
+bc_left   = -bc_offset -1.6;
 bc_top    = carriage_length ;
 bc_bottom = 0 ;
 
@@ -101,7 +128,7 @@ belt_clamps = [
 module four_belt_clamps() {
     for ( pos = belt_clamps ) {
         orientation = pos[0] ;
-        x = -(carriage_plate_offset + orientation[0] * strut_plate_height) ;
+        x = orientation[0] ? -(carriage_plate_offset + strut_plate_height +0.9) : -2;
         y = pos[1] ;
         z = pos[2] ;
         translate([ x, y, z ]) belt_clamp(orientation);
@@ -111,7 +138,7 @@ module four_belt_clamps() {
 module four_belt_clamps_carve() {
     for ( pos = belt_clamps ) {
         orientation = pos[0] ;
-        x = -(carriage_plate_offset + orientation[0] * strut_plate_height) ;
+        x = orientation[0] ? -(carriage_plate_offset + strut_plate_height +0.9) : -2;
         y = pos[1] ;
         z = pos[2] ;
         translate([ x, y, z ]) belt_clamp_carve(pos[0]);
@@ -123,12 +150,11 @@ module bearing_holder(l=carriage_length, id=bearing_diameter, od=cowling_diamete
     cylinder(l,r=od/2);
 }
 
-module bearing_holder_gaps(l=carriage_length, id=bearing_diameter, od=cowling_diameter, fd=-1) {
-    rfd = (fd<0) ? id-2 : fd ;
+module bearing_holder_gaps(l=carriage_length, id=bearing_diameter, od=cowling_diameter, fd=flange_diameter) {
     // Bearing
-    translate([0,0,1]) cylinder(l-2,r=id/2);
+    translate([0,0,flange_thickness]) cylinder(l-flange_thickness*2,r=id/2);
     // Flange
-    translate([0,0,-1]) cylinder(l+2,r=rfd/2);
+    translate([0,0,-1]) cylinder(l+2,r=fd/2);
     // Half-cylinder
     translate([0,-od/2,-1]) cube([od/2,od,l+2]);
 }
@@ -222,21 +248,59 @@ module hotend_mount_drill() {
     }
 }
 
+module e3d_hotend() {
+    translate([0,0,
+            -e3d_hotend_nozzle_height
+            -e3d_hotend_height
+            -e3d_hotend_interface_height
+            -e3d_heatsink_height
+            -e3d_groove_mount_height
+            +e3d_groove_mount_offset])
+    {
+        //-- PRINT ZONE
+        //translate([0,0,-1]) cube([carriage_length*2, carriage_length*2, 1],center=true);
+        //-- NOZZLE
+        cylinder(h=e3d_hotend_nozzle_height, r=e3d_hotend_nozzle_diameter/2 , $fn=6);
+        translate([0,0,e3d_hotend_nozzle_height]) {
+            translate([e3d_hotend_offset_x , e3d_hotend_offset_y, 0] )
+        
+        //-- HEATER BLOCK
+                cube([ e3d_hotend_width_x , e3d_hotend_width_y , e3d_hotend_height ]) ;
+
+        //-- INTERFACE
+                cylinder(h=e3d_hotend_interface_height + e3d_hotend_height + 1, r=3, $fn=30) ;
+                translate([0,0,e3d_hotend_height + e3d_hotend_interface_height ]) {
+
+        //-- HEATSINK
+                    cylinder(h=e3d_heatsink_height, r=e3d_heatsink_diameter/2);
+                    translate([0,0,e3d_heatsink_height-0.1]) {
+                        
+        //-- GROOVEMOUNT
+                        cylinder(h=e3d_groove_mount_height+0.1 - e3d_groove_mount_offset - groove_collar_height, r=groove_diameter/2);
+                        cylinder(h=e3d_groove_mount_height, r=groove_collar_diameter/2);
+                        
+                    translate([0,0,e3d_groove_mount_height - e3d_groove_mount_offset ]) {
+        //-- GROOVE HEAD
+                        cylinder(h=e3d_groove_mount_offset, r=groove_diameter/2);
+                    }
+                }
+            }
+        }
+    }
+}
+
+module ghost_e3d_hotend() {
+    if ( include_ghosts )
+        %hotend_mount_gaps() ;
+}
 module hotend_mount_gaps() {
     // Carve out space for the e3d hotend
-    // Hot-end neck grip (e3d)
     rotate([0,-90,0]) {
         translate(hotend_tower_pos)
-            translate(hotend_grip_pos) {
-                translate([hotend_grip_width/2,0,-0.5])
-                cylinder(h=hotend_grip_height+1, r=groove_collar_diameter/2);
-            translate([hotend_grip_width/2,0,hotend_grip_height-groove_collar_offset])
-                cylinder(h=groove_collar_offset+0.1, r=groove_diameter/2);
-            translate([hotend_grip_width/2,0,-0.5])
-                cylinder(h=hotend_grip_height-groove_collar_offset-groove_collar_height+0.5, r=groove_diameter/2);
-            }
-        translate([carriage_length/2,0,hotend_tower_height-hotend_grip_height-e3d_cooling_height-0.001])
-            cylinder(h=e3d_cooling_height, r=e3d_cooling_diameter/2);
+            translate(hotend_grip_pos)
+            translate([hotend_grip_width/2,0,0 ])
+            translate([0,0,hotend_grip_height - groove_collar_offset])
+                e3d_hotend();
     }
 }
 
@@ -266,6 +330,7 @@ module hotend_mount_support() {
 
 strut_len = rod_spacing-bearing_diameter ;
 module x_carriage_struts() {
+    translate([0.1,0,0])
     rotate([0,-90,0]) {
         translate([0,-strut_len/2, 0]) cube([strut_width, strut_len ,strut_height]);
         translate([carriage_length-strut_width,-strut_len/2, 0]) cube([strut_width, strut_len ,strut_height]);
@@ -276,48 +341,72 @@ module x_carriage_struts() {
 module x_carriage_struts_gaps() {
     len = strut_len - hotend_tower_thickness - 0.7;
     rotate([0,-90,0])
-        translate([(carriage_length-e3d_cooling_diameter)/2,-rod_spacing/2+bearing_diameter/2+0.7,-0.001])
-        cube([e3d_cooling_diameter, len , strut_height]);
+        translate([(carriage_length-e3d_heatsink_diameter)/2,-rod_spacing/2+bearing_diameter/2+0.7,-0.001])
+        cube([e3d_heatsink_diameter+0.5, len , strut_height]);
+}
+
+module ghost_fan( length=40, ofs=4, depth=10 ) {
+    if ( include_ghosts ) {
+        // Draw a "ghost" fan for alignment verification
+        near = ofs ;
+        far = length - ofs ;
+        //color("limegreen") 
+        %difference() {
+            cube([length,depth,length] ) ; 
+            translate([near, -.1, near]) rotate([-90,0,0]) cylinder(r=2, h=depth+.2, $fn=30);
+            translate([near, -.1,  far]) rotate([-90,0,0]) cylinder(r=2, h=depth+.2, $fn=30);
+            translate([ far, -.1, near]) rotate([-90,0,0]) cylinder(r=2, h=depth+.2, $fn=30);
+            translate([ far, -.1,  far]) rotate([-90,0,0]) cylinder(r=2, h=depth+.2, $fn=30);
+            translate([length/2, -.1, length/2]) rotate([-90,0,0]) cylinder(r=length/2-0.5, h=depth+.2, $fn=30);
+        }
+    }
 }
 
 module cooling_e3d_fan_mount() {
-    r = e3d_fan_mount_length*1.5/2 ;
-    support_length = e3d_fan_mount_height + e3d_fan_mount_riser ;
+    r = e3d_fan_mount_length/2 ;
+    support_length = carriage_length/2 - e3d_fan_mount_length/2 ;
 
     translate([-cowling_diameter/2+1,-rod_spacing/2-5,0])
         rotate([0,-90,-40])
-        translate([support_length,0,0])
+        translate([support_length,0,0]) {
         difference() {
-            translate([-support_length, 0, 0])
-                cube([e3d_fan_mount_length + support_length, 
+            union() {
+                cube([e3d_fan_mount_length , 
                       e3d_fan_mount_thickness,
                       e3d_fan_mount_height + e3d_fan_mount_riser ]);
 
-            // Support ramp
-            translate([-support_length, -0.5, 0])
-                rotate([0,-45,0])
-                cube([ support_length*1.5, e3d_fan_mount_thickness+1, 
-                       e3d_fan_mount_height + e3d_fan_mount_riser ]);
-
+                // Support ramp
+                translate([-support_length+0.01, 0, 0])
+                    overhang_support([ support_length,
+                        e3d_fan_mount_thickness,
+                        e3d_fan_mount_height + e3d_fan_mount_riser ]);
+            }
             // Fan breezeway
             translate([e3d_fan_mount_length/2,e3d_fan_mount_thickness+0.5, r+e3d_fan_mount_riser ])
                 rotate([90,90,0])
                 cylinder(r=r, h=e3d_fan_mount_thickness+1);
 
             // Mounting holes, 32mm apart for 40mm fan
-            #translate([3,e3d_fan_mount_thickness+0.5, e3d_fan_mount_height/2 + e3d_fan_mount_riser ])
+            translate([e3d_fan_mount_offset, e3d_fan_mount_thickness+0.5, e3d_fan_mount_height/2 + e3d_fan_mount_riser ])
                 rotate([90,90,0])
-                cylinder(r=m3_radius, h=e3d_fan_mount_thickness+1, $fn=5);
+                cylinder(r=m3_radius, h=e3d_fan_mount_thickness+1, $fn=30);
 
-            #translate([e3d_fan_mount_length - 3,e3d_fan_mount_thickness+0.5,
+            translate([e3d_fan_mount_length - e3d_fan_mount_offset,e3d_fan_mount_thickness+0.5,
                         e3d_fan_mount_height/2 + e3d_fan_mount_riser ])
                 rotate([90,90,0])
                 cylinder(r=m3_radius, h=e3d_fan_mount_thickness+1, $fn=5);
 
-            %translate([0,0, e3d_fan_mount_riser ])
-                rotate([90,270,90])
-                cube([e3d_fan_mount_length,10, e3d_fan_mount_length] ) ; 
         }
+
+        // Draw a "ghost" fan for alignment verification
+        near = e3d_fan_mount_offset ;
+        far = e3d_fan_mount_length - e3d_fan_mount_offset ;
+        fan_depth = 10 ;
+        translate([0,0, e3d_fan_mount_riser + e3d_fan_mount_height/2 - e3d_fan_mount_offset])
+            rotate([90,270,90])
+            ghost_fan( e3d_fan_mount_length , e3d_fan_mount_offset , 10 );
+        }
+                
 }
 //______________________________
 //                   BELT CLAMPS
@@ -370,17 +459,13 @@ module belt_clamp(orientation) {
 module belt_clamp_carve(orientation) {
     mirror([0,0,orientation[2]])
     mirror([orientation[0],0,0])
-        translate([-0.1, belt_clamp_thickness, belt_clamp_length + belt_clamp_support+0.01])
+        translate([-0.1, belt_clamp_thickness, belt_clamp_length + belt_clamp_support+1])
         rotate([0,90,0])
-        #cube([belt_clamp_length+ belt_clamp_support + 0.02, belt_clamp_gap, belt_clamp_height+0.02]);
+        cube([belt_clamp_length+ belt_clamp_support + 2, belt_clamp_gap, belt_clamp_height+0.1]);
 }
 
-cooling_fan_height = 18 ;
-cooling_fan_width = 40 ;
-cooling_fan_base_height = 4 ;
-cooling_fan_thickness = 1.8 ;
-cooling_fan_riser_width = 7 ;
-
+//_____________________________________
+//                    COOLING FAN MOUNT
 module cooling_fan_mount_screw() {
     difference() {
         union() {
@@ -400,28 +485,53 @@ module cooling_fan_mount_screw() {
             cylinder(r=m3_nut_radius , h=cooling_fan_thickness/2 , $fn=6 ) ;
 
         // Arbitrary hole
-        translate([cooling_fan_riser_width*6/8,cooling_fan_thickness+0.1,cooling_fan_height - cooling_fan_riser_width*1.5])
+        translate([cooling_fan_riser_width*.79,cooling_fan_thickness+0.1,cooling_fan_height - cooling_fan_riser_width*1.58])
             rotate([90,0,0])
             cylinder(r=cooling_fan_riser_width/2-0.5, h=cooling_fan_thickness+0.5 , $fn=30 ) ;
     }
 }
 
 module cooling_fan_mount() {
-    translate([0,rod_spacing/2+cowling_diameter/2,cooling_fan_width+3])
+    translate([0,rod_spacing/2+cowling_diameter/2+cooling_fan_thickness/2,(cooling_fan_width+carriage_length)/2-0.25])
     rotate([180,0,0])
     rotate([0,-90,0])
-    difference() {
-        union() {
-            cooling_fan_mount_screw() ;
-            translate([ cooling_fan_width - 6, 0, 0])
+    union() {
+        difference() {
+            union() {
                 cooling_fan_mount_screw() ;
-            cube([cooling_fan_width, cooling_fan_thickness , cooling_fan_base_height] ) ;
+                translate([ cooling_fan_width - cooling_fan_mount_offset*2, 0, 0])
+                    cooling_fan_mount_screw() ;
+    //            cube([cooling_fan_width, cooling_fan_thickness , cooling_fan_base_height] ) ;
+            }
+            translate([ cooling_fan_width+3, -0.1, -0.10])
+                cube([cooling_fan_width, cooling_fan_thickness +0.2, cooling_fan_height] ) ;
         }
-        translate([ cooling_fan_width+3, -0.1, -0.10])
-            cube([cooling_fan_width, cooling_fan_thickness +0.2, cooling_fan_height] ) ;
+        translate([cooling_fan_riser_width/2 - cooling_fan_mount_offset,-10,cooling_fan_height-cooling_fan_riser_width/2 + cooling_fan_mount_offset -cooling_fan_width])
+        ghost_fan(cooling_fan_width, cooling_fan_mount_offset) ;
     }
 }
 
 //overhang_support();
 //belt_clamp() ;
-x_carriage();
+//intersection() 
+if ( true ) 
+{
+    color("yellow", .5) x_carriage();
+//e3d_hotend();
+    color("green",0.5) 
+    translate([-20,351,-69.5])
+    import("/home/hordp/Downloads/fusebox/files/1-Carriage.stl");
+}
+else if ( false ) 
+{
+    color("yellow", 1) x_carriage();
+}
+else
+{
+    //color("red", .5) x_carriage();
+//e3d_hotend();
+    color("green",1) 
+    translate([-20,351,-69.5])
+    import("/home/hordp/Downloads/fusebox/files/1-Carriage.stl");
+}
+    
