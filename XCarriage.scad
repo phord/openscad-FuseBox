@@ -1,7 +1,7 @@
 // FuseBox X-Carriage design
 
 // Include ghost objects for comprehension/alignment checks
-include_ghosts = false ;
+include_ghosts = true ;
 
 rod_spacing = 43.25 ;
 carriage_length = 47.5 ;
@@ -511,27 +511,4 @@ module cooling_fan_mount() {
     }
 }
 
-//overhang_support();
-//belt_clamp() ;
-//intersection() 
-if ( true ) 
-{
-    color("yellow", .5) x_carriage();
-//e3d_hotend();
-    color("green",0.5) 
-    translate([-20,351,-69.5])
-    import("/home/hordp/Downloads/fusebox/files/1-Carriage.stl");
-}
-else if ( false ) 
-{
-    color("yellow", 1) x_carriage();
-}
-else
-{
-    //color("red", .5) x_carriage();
-//e3d_hotend();
-    color("green",1) 
-    translate([-20,351,-69.5])
-    import("/home/hordp/Downloads/fusebox/files/1-Carriage.stl");
-}
-    
+x_carriage();
