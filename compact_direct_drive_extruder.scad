@@ -31,6 +31,7 @@
 //                         dFil , dGear, hGear dHob  oHob , dTth, hHob
 MK8_175                = [ 1.75 , 8.00 , 13 ,  6.35 , 3.2 , 0.2 , 1.75 ] ; // MK8 1.75mm
 MK8_300                = [ 3.00 , 8.00 , 13 ,  6.35 , 3.2 , 0.2 , 3.0  ] ; // MK8 3.00mm
+MK8_175_ROBOTDIGG      = [ 1.75 , 9.00 , 11 ,  6.91 , 4.0 , 0.2 , 3.2  ] ; // MK8 1.75mm from RobotDigg.com
 MK8_300_ROBOTDIGG      = [ 3.00 , 9.00 , 11 ,  6.91 , 4.0 , 0.2 , 4.5  ] ; // MK8 3.00mm from RobotDigg.com
 
 /* Push-fit connector options
