@@ -128,7 +128,7 @@ belt_clamps = [
 module four_belt_clamps() {
     for ( pos = belt_clamps ) {
         orientation = pos[0] ;
-        x = orientation[0] ? -(carriage_plate_offset + strut_plate_height +0.9) : -2;
+        x = orientation[0] ? -(carriage_plate_offset + strut_plate_height -0.9) : -2;
         y = pos[1] ;
         z = pos[2] ;
         translate([ x, y, z ]) belt_clamp(orientation);
