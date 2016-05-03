@@ -6,8 +6,8 @@ include_ghosts = true ;
 rod_spacing = 43.25 ;
 carriage_length = 47.5 ;
 
-cowling_diameter = 23 ;
-zip_tie_outer_diameter = 21 ;
+cowling_diameter = 22 ;
+zip_tie_outer_diameter = 22.1 ;
 bearing_diameter = 16 ;
 flange_diameter = 12 ;
 flange_thickness = 0.5 ;
