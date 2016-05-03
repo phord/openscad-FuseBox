@@ -55,7 +55,7 @@ belt_clamp_rib_spacing = 2 ;
 belt_clamp_rib_count = 4 ;
 belt_clamp_rib_size = 1 ;
 belt_clamp_height = 7 ;
-belt_clamp_gap = 1.15 ;
+belt_clamp_gap = 2.15 ;
 belt_clamp_thickness = 2.25 ;
 
 // M3 drill holes and nut captures
@@ -67,7 +67,7 @@ m3_nut_depth = 1;
 cooling_fan_height = 18.9 ;
 cooling_fan_width = 40 ;
 cooling_fan_base_height = 4 ;
-cooling_fan_thickness = 2 ;
+cooling_fan_thickness = 3 ;
 cooling_fan_riser_width = 7 ;
 
 // Calculated
