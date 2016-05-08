@@ -52,11 +52,11 @@ e3d_fan_mount_height = 6 ;
 e3d_fan_mount_riser = 4 ;
 
 belt_clamp_rib_spacing = 2 ;
-belt_clamp_rib_count = 4 ;
+belt_clamp_rib_count = 6 ;
 belt_clamp_rib_size = 1 ;
 belt_clamp_height = 7 ;
 belt_clamp_gap = 2.15 ;
-belt_clamp_thickness = 2.25 ;
+belt_clamp_thickness = 3.5 ;
 
 // M3 drill holes and nut captures
 m3_radius=1.6 ;
@@ -107,22 +107,27 @@ module x_carriage() {
             four_belt_clamps();
         }
         x_carriage_gaps();
+        four_belt_clamps_carve();
+    }
+    difference() {
+        four_belt_clamps();
+        four_belt_clamps_carve();
     }
 }
 
 //       orientation ,  Position
 bc_offset = hotend_tower_pos[1];
 bc_width  = belt_clamp_gap + belt_clamp_thickness ;
-bc_right  = bc_offset - bc_width ;
-bc_left   = -bc_offset -1.6;
+bc_right  = bc_offset + 2.85;
+bc_left   = -bc_offset -2.85;
 bc_top    = carriage_length ;
 bc_bottom = 0 ;
 
 belt_clamps = [ 
     [  [0,0,0] , bc_left, bc_bottom ],
-    [  [0,0,1] , bc_right, bc_top ],
+    [  [0,1,1] , bc_right, bc_top ],
     [  [1,0,1] , bc_left, bc_top ],
-    [  [1,0,0] , bc_right, bc_bottom ]
+    [  [1,1,0] , bc_right, bc_bottom ]
  ] ;
 
 module four_belt_clamps() {
@@ -138,10 +143,10 @@ module four_belt_clamps() {
 module four_belt_clamps_carve() {
     for ( pos = belt_clamps ) {
         orientation = pos[0] ;
-        x = orientation[0] ? -(carriage_plate_offset + strut_plate_height +0.9) : -2;
+        x = orientation[0] ? -(carriage_plate_offset + strut_plate_height -.5) : -2;
         y = pos[1] ;
         z = pos[2] ;
-        translate([ x, y, z ]) belt_clamp_carve(pos[0]);
+        translate([ x, y, z ]) belt_clamp_carve(orientation);
     }
 }
 
@@ -193,7 +198,7 @@ module x_carriage_gaps() {
         }
         translate([0,rod_spacing/2,0]) {
             translate([0,0,5]) zip_tie_ring();
-            translate([0,0,38.5]) zip_tie_ring();
+            #translate([0,0,38.5]) zip_tie_ring();
         }
     }
 }
@@ -425,11 +430,8 @@ module belt_clamp_wall() {
     length = belt_clamp_length ;
     support_length = belt_clamp_support ;
 
-    union() {
-        translate([support_length-0.01,0,0])
-            cube([length, belt_clamp_thickness, belt_clamp_height]) ;
-        overhang_support([support_length, belt_clamp_thickness, belt_clamp_height]);
-    }
+       translate([support_length-0.01,0,0])
+            cube([length, belt_clamp_thickness, belt_clamp_height+1]) ;
 }
 
 module belt_clamp_ribbed() {
@@ -444,6 +446,15 @@ module belt_clamp_ribbed() {
 }
 
 module belt_clamp(orientation) {
+    mirror([0,0,orientation[2]])
+    mirror([0,orientation[1],0])
+    mirror([orientation[0],0,0])
+        translate([0,0,belt_clamp_length + belt_clamp_support])
+        rotate([0,90,0])
+            belt_clamp_wall();
+}
+
+module belt_clamp_old(orientation) {
     wall_ofs = belt_clamp_gap + belt_clamp_thickness ;
     mirror([0,0,orientation[2]])
     mirror([orientation[0],0,0])
@@ -458,10 +469,24 @@ module belt_clamp(orientation) {
 // Carve a channel before mergeing a belt-clamp
 module belt_clamp_carve(orientation) {
     mirror([0,0,orientation[2]])
+    mirror([0,orientation[1],0])
     mirror([orientation[0],0,0])
-        translate([-0.1, belt_clamp_thickness, belt_clamp_length + belt_clamp_support+1])
-        rotate([0,90,0])
-        cube([belt_clamp_length+ belt_clamp_support + 2, belt_clamp_gap, belt_clamp_height+0.1]);
+        translate([-0.1, belt_clamp_thickness, belt_clamp_length + belt_clamp_support+1]){
+            // Carve the inlet path from the idler
+            rotate([0,90,0])
+            cube([belt_clamp_length+ belt_clamp_support + 2, belt_clamp_gap, belt_clamp_height+0.1]);
+            
+            // Carve a channel to the zip-tie
+            rotate([90,90,0]) {
+              hull() {    
+                translate([4,0,2])
+                  cube([5.5, belt_clamp_height+0.2,3]);
+                translate([7,0,-.2])
+                    cube([2.2, belt_clamp_height,.2]);
+                }
+            }
+                
+        }
 }
 
 //_____________________________________
