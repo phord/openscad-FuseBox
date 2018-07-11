@@ -97,6 +97,7 @@ module cutouts() {
 module heatsink_fan() {
     // TODO: Add mounting holes for fan to blow on e3d
     // 30mm box fan placeholder
+    translate([0,0,-3])
     difference(){
         cube([30,30,6], center=true);
         cylinder(d=29,h=11, center=true);
@@ -286,6 +287,26 @@ module titanmount(){
     }
 }
 
+module place_heatsink_fan(){
+    translate([52, 35, -21])
+    rotate([-90,0,90])
+    %heatsink_fan();
+}
+
+module place_cooling_fan(){
+    translate([-40, 35, -15])
+    rotate([-90,0,90])
+    rotate([30,0,0])
+    translate([-2,-5,-15])
+    %cooling_fan();
+}
+
+module place_bltouch(){
+    translate([25, carriage_length+7, -2])
+    rotate([0,0,0])
+    bltouch_mount();
+}
+
 //combine clips and carriage
 module carriage(){
     difference() {
@@ -293,12 +314,9 @@ module carriage(){
             basecarriage();
             titanmount();
 
-            translate([-30, -10, -30])
-            heatsink_fan();
-            translate([-30, -50, -10])
-            cooling_fan();
-            translate([0, -30, -30])
-            bltouch_mount();
+            place_heatsink_fan();
+            place_cooling_fan();
+            place_bltouch();
         }
         cutouts();
     }
@@ -312,7 +330,7 @@ module e3TitanPlacement(){
         e3dtitan();
 }
 rotate([90,0,0]) {
-carriage();
-e3TitanPlacement();
+    carriage();
+    e3TitanPlacement();
 }
 //beltclip2();
