@@ -3,7 +3,7 @@ $fn=64;
 bearing_length=45;
 bearing_diameter=15.2;
 rod_spacing=43.25;
-carriage_length=bearing_length+10;
+carriage_length=bearing_length+13;
 shell = 1.5; // thickness of bearing shell
 
 //belt clip module
