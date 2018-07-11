@@ -167,8 +167,12 @@ module clips() {
 }
 
 module clip_cutout() {
-    translate([4-1.85,-0.5,1.5])
-        cube([4.5,12.5,9]);
+    translate([4.25,3.75,6])
+    hull(){
+        cube([4.2,8,9], center=true);
+        translate([0,5.25,0])
+        cylinder(d=4.2, h=9, center=true);
+    }
  }
 
 module topclip_cutouts() {
