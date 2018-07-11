@@ -114,14 +114,40 @@ module cutouts() {
 
 module heatsink_fan() {
     // TODO: Add mounting holes for fan to blow on e3d
+    // 30mm box fan placeholder
+    difference(){
+        cube([30,30,6], center=true);
+        cylinder(d=29,h=11, center=true);
+        #four_screw_holes(24, 3, 22);
+    }
 }
 
 module cooling_fan() {
     // TODO: Add mounting holes for fan to blow on printed part
+    // 40mm box fan placeholder
+    difference(){
+        cube([40,40,10], center=true);
+        cylinder(d=39,h=11, center=true);
+        #four_screw_holes(32, 4.5, 30);
+    }
 }
 
 module bltouch_mount() {
     // TODO: Add mounting holes for BLTouch z-probe module
+    // BLTouch mounting footprint
+    height=2.3;
+    difference() {
+        hull() {
+            cube([6, 11.53, height], center=true);
+            for (y=[-9, 9])
+                translate([y, 0, 0])
+                    cylinder(r=4, h=height, center=true);
+        }
+
+        #for (y=[-9, 9])
+            translate([y, 0, 0])
+                cylinder(d=3, h=height*10, center=true);
+    }
 }
 
 
@@ -186,6 +212,13 @@ module clip_cutouts() {
         topclip_cutouts();
 }
 
+module four_screw_holes(offset, d, height) {
+    for (i = [-1,1])
+        for (j = [-1,1])
+            translate([i*offset/2, j*offset/2, 0])
+                cylinder(d=d, h=height, center=true);
+}
+
 module e3dtitan(){
     depth=25;
     difference() {
@@ -217,10 +250,7 @@ module e3dtitan(){
             // Motor flange hole
             cylinder(d=23, h=depth*2+0.2, center=true);
             // screw-holes
-            for (i = [-1,1])
-                for (j = [-1,1])
-                    translate([i*31/2, j*31/2, 0])
-                        cylinder(d=4.5, h=depth+1, center=true);
+            four_screw_holes(31, 4.5, depth+1);
             }
         }
 }
@@ -256,11 +286,8 @@ module titanmount(){
                 cylinder(d=23, h=plate_depth*2+0.2, center=true);
 
                 // screw-holes
-                for (i = [-1,1])
-                    for (j = [-1,1])
-                        translate([i*31/2, j*31/2, -plate_depth/2])
-                            cylinder(d=4.5, h=plate_depth+0.2, center=true);
-
+                translate([0, 0, -plate_depth/2])
+                    four_screw_holes(31, 4.5, plate_depth+0.2);
             }
         }
     }
@@ -272,8 +299,12 @@ module carriage(){
         union() {
             basecarriage();
             titanmount();
+
+            translate([-30, -10, -30])
             heatsink_fan();
+            translate([-30, -50, -10])
             cooling_fan();
+            translate([0, -30, -30])
             bltouch_mount();
         }
         cutouts();
