@@ -130,6 +130,13 @@ module bltouch_mount() {
             translate([y, 0, 0])
                 cylinder(d=3, h=height*10, center=true);
     }
+
+    color("silver")
+    translate([0,0,-height/2-34/2])
+        cylinder(d=13, h=34, center=true);
+    color("white")
+    translate([0,0,-height/2-34-4.4])
+        cylinder(d=1, h=8.8, center=true);
 }
 
 
