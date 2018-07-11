@@ -100,17 +100,30 @@ module cutouts() {
             rotate([90,0,90]) {
                 // Hotend heat sink
                 translate([11.1+2, -1.5, -30])
-                    #cylinder( d=spacing, h=30, center=true);
+                    cylinder( d=spacing, h=30, center=true);
                 // Make room for air flow
                 translate([3, spacing/2-14.25, -30])
                     cylinder( d=spacing, h=30, center=true);
-                // translate([11.1, -10.5, -30])
-                //     #cube( [10, 10, 30], center=true);
             }
         }
     }
+
+    // Cut gap around belt clips
     clip_cutouts();
 }
+
+module heatsink_fan() {
+    // TODO: Add mounting holes for fan to blow on e3d
+}
+
+module cooling_fan() {
+    // TODO: Add mounting holes for fan to blow on printed part
+}
+
+module bltouch_mount() {
+    // TODO: Add mounting holes for BLTouch z-probe module
+}
+
 
 //left bearing tube
 module bearing(){
@@ -228,7 +241,7 @@ module titanmount(){
                     // Vertical plate
                     translate([0,0,-plate_depth/2])
                         cube([43, 43, plate_depth], center=true);
-                    // Vertical shell strenth
+                    // Vertical shell strength
                     translate([-43/2 - 10/2,0,-plate_depth/2])
                         cube([10, 43, plate_depth], center=true);
                     // Bottom plate
@@ -253,12 +266,15 @@ module titanmount(){
     }
 }
 
-//combine clips and carraige
+//combine clips and carriage
 module carriage(){
     difference() {
         union() {
             basecarriage();
             titanmount();
+            heatsink_fan();
+            cooling_fan();
+            bltouch_mount();
         }
         cutouts();
     }
