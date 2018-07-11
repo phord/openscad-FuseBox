@@ -7,30 +7,37 @@ carriage_length=bearing_length+13;
 shell = 1.5; // thickness of bearing shell
 
 //belt clip module
-module beltclip_(x){
+module beltclip_(x1,x2){
     difference(){
 
         translate([-1.85,0,0])
-        cube([7,11,8.5]);
+            cube([12,11,8.5]);
 
         translate([2.2,-1,1])
-        cube([1.1,12,11]);
+            cube([1.1,12,11]);
+
+        translate([5.25,-1,1])
+            cube([1.1,12,11]);
+
         translate([-5,11,0])
         rotate([20.6,0,0])
-        cube([12,5,9]);
+            cube([16,5,9]);
     }
-    for (y=[1,3,5,7])
-        translate([x,y+.5,0])
+    for (y=[1,3,5,7]) {
+        translate([x1,y+.5,0])
             cylinder(d=1, h=8.5);
+        translate([x2,y+.5,0])
+            cylinder(d=1, h=8.5);
+    }
 }
 
 module beltclip(){
-    beltclip_(3.4);
+    beltclip_(3.4, 5.1);
 }
 
 //belt clip module
 module beltclip2(){
-    beltclip_(2.1);
+    beltclip_(2.1, 6.5);
 }
 
 module bearing_cutout() {
