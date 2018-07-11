@@ -4,6 +4,7 @@ bearing_length=45;
 bearing_diameter=15.2;
 rod_spacing=43.25;
 carriage_length=bearing_length+10;
+shell = 1.5; // thickness of bearing shell
 
 //belt clip module
 module beltclip(){
@@ -76,6 +77,19 @@ module cutouts() {
         bearing_cutout();
     }
 
+    // Cut gaps/slits in bearing pushfit tubes
+    gap = 8; // Cylinder opening width
+    rotate([-90,0,0]) {
+    translate([-4,4,-1])
+        translate([0,-2,0])
+            cube([gap,10,carriage_length+2]);
+
+        translate([rod_spacing,0,0])
+        mirror([1,0,0])
+        translate([-4,4,-1])
+            translate([0,-2,0])
+                cube([gap,10,carriage_length+2]);
+    }
 
     // cut hotend hole
     spacing = rod_spacing-bearing_diameter-shell*2;
@@ -99,17 +113,8 @@ module cutouts() {
 }
 
 //left bearing tube
-shell = 1.5; // thickness of bearing shell
 module bearing(){
-    gap = 5; // Cylinder opening
-
-    difference(){
-        cylinder(d=bearing_diameter + shell*2, h=carriage_length);
-        translate([-4,4,-1])
-            rotate([0,0,20])
-            translate([0,-2,0])
-                cube([gap,10,carriage_length+2]);
-    }
+    cylinder(d=bearing_diameter + shell*2, h=carriage_length);
 }
 
 //right bearing tube
