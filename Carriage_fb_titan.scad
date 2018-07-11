@@ -73,29 +73,23 @@ module cutouts() {
         translate([rod_spacing,0,0])
         mirror([1,0,0])
             bearing_cutout();
-        // re-cut bearing hole
         bearing_cutout();
     }
 
-    // //hole for hot end
-    // hull(){
-    //     translate([21.5,24,-5])
-    //         cylinder(d=30,h=20);
-    //     translate([21.5,24,-5])
-    //         cylinder(d=30,h=20);
-    // }
 
+    // cut hotend hole
+    spacing = rod_spacing-bearing_diameter-shell*2;
     translate([19.5,47/2,32])
     rotate([0,-90,0])
     translate([0, -5/2, 0]) {
-        hull(){
+        hull() {
             rotate([90,0,90]) {
                 // Hotend heat sink
-                translate([11.1, 1-1.5, -30])
-                    cylinder( d=25, h=30, center=true);
-                // Make room for a small fan
-                translate([6, (rod_spacing-bearing_diameter)/2-16.25, -30])
-                    cube( [32, rod_spacing-bearing_diameter, 30], center=true);
+                translate([11.1+2, -1.5, -30])
+                    #cylinder( d=spacing, h=30, center=true);
+                // Make room for air flow
+                translate([3, spacing/2-14.25, -30])
+                    cylinder( d=spacing, h=30, center=true);
                 // translate([11.1, -10.5, -30])
                 //     #cube( [10, 10, 30], center=true);
             }
