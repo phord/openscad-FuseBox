@@ -232,11 +232,9 @@ module e3dtitan(){
                     color("blue")
                         cylinder( d=3, h=190, center=true);
 
-                // Hotend heat sink
-                translate([-38, 11.1, -1.5])
-                    rotate([90,0,90])
-                    color("green")
-                        cylinder( d=22, h=30, center=true);
+                translate([-85,-5,10])
+                %rotate([180,0,90])
+                import("e3dv6.stl");
             }
         }
 
@@ -287,18 +285,45 @@ module titanmount(){
     }
 }
 
+module cage_fan(){
+    difference() {
+        color("darkgrey") {
+            cylinder(d=50, h=15,center=true);
+            rotate([0,0,-45])
+            hull() {
+                translate([-29,0,0])
+                cylinder(d=7,h=15,center=true);
+                translate([29,0,0])
+                cylinder(d=7,h=15,center=true);
+            }
+            translate([15.8,12.5,0])
+            cube([17.6,35,15],center=true);
+        }
+
+        color("darkgrey") {
+        rotate([0,0,-45]) {
+            translate([-29,0,0])
+            #cylinder(d=4,h=40,center=true);
+            translate([29,0,0])
+            #cylinder(d=4,h=40,center=true);
+        }
+        cylinder(d=48, h=13,center=true);
+        translate([15.8,12.6,0])
+        cube([15.6,35,13],center=true);
+        }
+    }
+}
+
 module place_heatsink_fan(){
-    translate([52, 35, -21])
-    rotate([-90,0,90])
-    %heatsink_fan();
+    translate([60, 29, 15])
+    rotate([-90,15,-90])
+    %cage_fan();
 }
 
 module place_cooling_fan(){
-    translate([-40, 35, -15])
-    rotate([-90,0,90])
-    rotate([30,0,0])
-    translate([-2,-5,-15])
-    %cooling_fan();
+    translate([-26, 25, 31])
+    rotate([-90,-25,90])
+    %cage_fan();
 }
 
 module place_bltouch(){
@@ -329,6 +354,7 @@ module e3TitanPlacement(){
     rotate([0,-90,0])
         e3dtitan();
 }
+
 rotate([90,0,0]) {
     carriage();
     e3TitanPlacement();
