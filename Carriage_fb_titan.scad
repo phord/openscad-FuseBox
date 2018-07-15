@@ -217,6 +217,32 @@ module bltouch_mount() {
         cylinder(d=1, h=8.8, center=true);
 }
 
+module titan_motor() {
+    depth=23;
+    shaft=22;
+    translate([0,0,depth/2])
+    difference() {
+        union() {
+            color("black")
+            cube([43, 43, depth], center=true);
+
+            // motor shaft
+            translate([0, 0, -depth/2-shaft/2])
+                rotate([0,0,90])
+                color("grey")
+                    cylinder( d=5, h=shaft, center=true);
+        }
+
+        for (i = [45,135,-135,-45])
+            rotate([0,0,i])
+                translate([1.4*43/2,0,0])
+                color("black")
+                cube([4,10,depth+0.1], center=true);
+
+        four_screw_holes(31, 3.5, depth+1);
+    }
+}
+
 module e3dtitan(){
     depth=25;
     difference() {
@@ -363,6 +389,10 @@ module e3TitanPlacement(){
     translate([19,47/2,32])
     rotate([0,-90,0])
         e3dtitan();
+
+    translate([5-shell,43/2,31])
+    rotate([0,-90,0])
+        titan_motor();
 }
 
 rotate([90,0,0]) {
