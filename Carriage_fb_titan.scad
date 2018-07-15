@@ -369,8 +369,8 @@ module place_cooling_fan(){
 }
 
 module place_bltouch(){
-    translate([25, carriage_length+7, -2])
-    rotate([0,0,0])
+    translate([-13, carriage_length-6, 10.5])
+    rotate([0,0,45])
     %bltouch_mount();
 }
 
