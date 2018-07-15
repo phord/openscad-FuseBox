@@ -2,7 +2,7 @@ $fn=64;
 
 // Extruder mount
 shell = 1.5; // thickness of bearing shell
-extruder_offset = 0;
+extruder_offset = 10;
 
 //Carriage dimensions
 bearing_length=45;
@@ -86,7 +86,7 @@ module cutouts() {
         hull() {
             rotate([90,0,90]) {
                 // Hotend heat sink
-                translate([11.1+2, -1.5, -30])
+                translate([11.1+2+extruder_offset, -1.5, -30])
                     cylinder( d=spacing, h=30, center=true);
                 // Make room for air flow
                 translate([3, spacing/2-14.25, -30])
@@ -284,16 +284,16 @@ module e3dtitan(){
 }
 
 
+plate_depth = 3;
+base_width = 25;
 module titanmount(){
-    plate_depth = 3;
-    base_width = 25;
 
     rotate([-90,0,0])
     difference() {
         translate([21.6-13.5,-43.2/2-6.5-shell,21.5])
         rotate([-90,0,-90])
         {
-            translate([plate_depth/2,0,-plate_depth/2])
+            translate([plate_depth/2, -extruder_offset, -plate_depth/2])
             difference() {
                 union() {
                     // Vertical plate
@@ -392,11 +392,11 @@ module carriage(){
 
 //Place e3d-titan for alignment comparison
 module e3TitanPlacement(){
-    translate([19,47/2,32])
+    translate([19,47/2 + extruder_offset, 32])
     rotate([0,-90,0])
         e3dtitan();
 
-    translate([5-shell,43/2,31])
+    translate([6.5-plate_depth,43/2 + extruder_offset,31])
     rotate([0,-90,0])
         titan_motor();
 }
