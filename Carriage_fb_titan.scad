@@ -357,8 +357,14 @@ module place_heatsink_fan(){
 }
 
 module place_cooling_fan(){
-    translate([-26, 25, 31])
-    rotate([-90,-25,90])
+    color("blue")
+    translate([0, 65, 35])
+    rotate([-90,-5,180])
+    %cage_fan();
+
+    color("orange")
+    translate([0, -10, 35])
+    rotate([-90,-5,180])
     %cage_fan();
 }
 
