@@ -262,7 +262,7 @@ module e3dtitan(){
                     color("blue")
                         cylinder( d=3, h=190, center=true);
 
-                translate([-85,-5,10])
+                translate([-72.5,-5,10])
                 %rotate([180,0,90])
                 import("e3dv6.stl");
             }
