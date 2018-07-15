@@ -1,10 +1,15 @@
 $fn=64;
 
+// Extruder mount
+shell = 1.5; // thickness of bearing shell
+extruder_offset = 0;
+
+//Carriage dimensions
 bearing_length=45;
 bearing_diameter=15.2;
 rod_spacing=43.25;
-carriage_length=bearing_length+13;
-shell = 1.5; // thickness of bearing shell
+carriage_length=bearing_length+13 + extruder_offset;
+
 
 //belt clip module
 module beltclip_(x1,x2){
@@ -94,53 +99,6 @@ module cutouts() {
     clip_cutouts();
 }
 
-module heatsink_fan() {
-    // TODO: Add mounting holes for fan to blow on e3d
-    // 30mm box fan placeholder
-    translate([0,0,-3])
-    difference(){
-        cube([30,30,6], center=true);
-        cylinder(d=29,h=11, center=true);
-        #four_screw_holes(24, 3, 22);
-    }
-}
-
-module cooling_fan() {
-    // TODO: Add mounting holes for fan to blow on printed part
-    // 40mm box fan placeholder
-    difference(){
-        cube([40,40,10], center=true);
-        cylinder(d=39,h=11, center=true);
-        #four_screw_holes(32, 4.5, 30);
-    }
-}
-
-module bltouch_mount() {
-    // TODO: Add mounting holes for BLTouch z-probe module
-    // BLTouch mounting footprint
-    height=2.3;
-    difference() {
-        hull() {
-            cube([6, 11.53, height], center=true);
-            for (y=[-9, 9])
-                translate([y, 0, 0])
-                    cylinder(r=4, h=height, center=true);
-        }
-
-        #for (y=[-9, 9])
-            translate([y, 0, 0])
-                cylinder(d=3, h=height*10, center=true);
-    }
-
-    color("silver")
-    translate([0,0,-height/2-34/2])
-        cylinder(d=13, h=34, center=true);
-    color("white")
-    translate([0,0,-height/2-34-4.4])
-        cylinder(d=1, h=8.8, center=true);
-}
-
-
 //left bearing tube
 module bearing(){
     cylinder(d=bearing_diameter + shell*2, h=carriage_length);
@@ -213,6 +171,52 @@ module four_screw_holes(offset, d, height) {
                 cylinder(d=d, h=height, center=true);
 }
 
+module heatsink_fan() {
+    // TODO: Add mounting holes for fan to blow on e3d
+    // 30mm box fan placeholder
+    translate([0,0,-3])
+    difference(){
+        cube([30,30,6], center=true);
+        cylinder(d=29,h=11, center=true);
+        #four_screw_holes(24, 3, 22);
+    }
+}
+
+module cooling_fan() {
+    // TODO: Add mounting holes for fan to blow on printed part
+    // 40mm box fan placeholder
+    difference(){
+        cube([40,40,10], center=true);
+        cylinder(d=39,h=11, center=true);
+        #four_screw_holes(32, 4.5, 30);
+    }
+}
+
+module bltouch_mount() {
+    // TODO: Add mounting holes for BLTouch z-probe module
+    // BLTouch mounting footprint
+    height=2.3;
+    difference() {
+        hull() {
+            cube([6, 11.53, height], center=true);
+            for (y=[-9, 9])
+                translate([y, 0, 0])
+                    cylinder(r=4, h=height, center=true);
+        }
+
+        #for (y=[-9, 9])
+            translate([y, 0, 0])
+                cylinder(d=3, h=height*10, center=true);
+    }
+
+    color("silver")
+    translate([0,0,-height/2-34/2])
+        cylinder(d=13, h=34, center=true);
+    color("white")
+    translate([0,0,-height/2-34-4.4])
+        cylinder(d=1, h=8.8, center=true);
+}
+
 module e3dtitan(){
     depth=25;
     difference() {
@@ -244,7 +248,13 @@ module e3dtitan(){
             // screw-holes
             four_screw_holes(31, 4.5, depth+1);
             }
-        }
+
+        translate([-2/2, -5/2, 0])
+        rotate([0,0,-135])
+            translate([1.4*42/2,0,0])
+            color("silver")
+            cube([4,10,depth+0.1], center=true);
+    }
 }
 
 
@@ -329,7 +339,7 @@ module place_cooling_fan(){
 module place_bltouch(){
     translate([25, carriage_length+7, -2])
     rotate([0,0,0])
-    bltouch_mount();
+    %bltouch_mount();
 }
 
 //combine clips and carriage
@@ -350,13 +360,13 @@ module carriage(){
 
 //Place e3d-titan for alignment comparison
 module e3TitanPlacement(){
-    translate([19.5,47/2,32])
+    translate([19,47/2,32])
     rotate([0,-90,0])
         e3dtitan();
 }
 
 rotate([90,0,0]) {
     carriage();
-    e3TitanPlacement();
+    %e3TitanPlacement();
 }
 //beltclip2();
