@@ -427,7 +427,7 @@ module heat_sink_duct_2() {
     translate([0,10,0])
         rotate([0,-45,0]){
             ducting_bent();
-            translate([-10,12,0])
+            translate([-10-1.9,12,0])
             rotate([0,0,90])
                 duct_fan(35);
         }
@@ -449,13 +449,6 @@ module circle_squash(squash, r) {
     }
 }
 
-module duct_fan_2d(squash) {
-    difference() {
-        circle_squash(squash, 19+shell*2);
-        circle_squash(squash, 19);
-    }
-}
-
 module duct_fan_3d(squash, d) {
     rotate([0,90,90])
     linear_extrude(height=1, center=true)
@@ -469,28 +462,46 @@ module ducting(length) {
         duct_2d();
 }
 
-module duct_fan_solid(length, d) {
-    hull() {
-        duct_fan_3d(0, d);
-        translate([0,length-1,0])
-            duct_fan_3d(0.5, d);
+module duct_fan_solid(length, d, shell) {
+    difference() {
+    minkowski() {
+        hull() {
+            duct_fan_3d(0, d);
+            translate([0,length-1,0])
+                duct_fan_3d(0.5, d);
+        }
+        cube([shell, shell, shell/2], center=true);
+    }
+        translate([0,-shell/2-0.01,0])
+            cube([50,shell+0.02,50], center=true);
+        translate([0,length-0.01,0])
+            cube([50,shell+0.02,50], center=true);
     }
 }
 
 module duct_fan(length) {
     difference() {
-        duct_fan_solid(length, 19+shell*2);
+        duct_fan_solid(length, 19, shell*2);
         translate([0,-0.005,0])
-        duct_fan_solid(length+0.01, 19);
+        duct_fan_solid(length+0.01, 19, 0);
+    }
+}
+
+module ducting_bent_solid(d, offset, extra) {
+    translate([-offset,0,-offset])
+    intersection() {
+        rotate_extrude()
+            translate([offset,offset,0])
+                circle(d=d);
+        translate([-extra, -extra, -extra])
+            cube([d*2.5, d*2.5, d*2.5]);
     }
 }
 
 module ducting_bent() {
-    translate([-12,0,-12])
-    intersection() {
-        rotate_extrude()
-            translate([12,12,0]) duct_2d();
-        cube([40,40,40]);
+    difference() {
+        ducting_bent_solid(19+2*shell, 12, 0);
+        ducting_bent_solid(19, 12, 0.01);
     }
 }
 
