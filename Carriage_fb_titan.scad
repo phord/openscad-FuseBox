@@ -325,28 +325,29 @@ module titanmount(){
 module cage_fan(){
     difference() {
         color("darkgrey") {
-            cylinder(d=50, h=15,center=true);
+            cylinder(d=48, h=15,center=true);
             rotate([0,0,-45])
             hull() {
-                translate([-29,0,0])
+                translate([-28,0,0])
                 cylinder(d=7,h=15,center=true);
-                translate([29,0,0])
+                translate([28,0,0])
                 cylinder(d=7,h=15,center=true);
             }
-            translate([15.8,12.5,0])
-            cube([17.6,35,15],center=true);
+            translate([13.5,12.5,0])
+            cube([20,30,15],center=true);
+
         }
 
         color("darkgrey") {
         rotate([0,0,-45]) {
-            translate([-29,0,0])
+            translate([-28,0,0])
             #cylinder(d=4,h=40,center=true);
-            translate([29,0,0])
+            translate([28,0,0])
             #cylinder(d=4,h=40,center=true);
         }
-        cylinder(d=48, h=13,center=true);
-        translate([15.8,12.6,0])
-        cube([15.6,35,13],center=true);
+        cylinder(d=46, h=13,center=true);
+        translate([13.5,12.6,0])
+            cube([17,35,13],center=true);
         }
     }
 }
