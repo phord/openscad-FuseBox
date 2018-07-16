@@ -1,14 +1,16 @@
 $fn=64;
 
 // Extruder mount
-shell = 1.5; // thickness of bearing shell
 extruder_offset = 10;
+plate_depth = 3;
+base_width = 25;
 
 //Carriage dimensions
 bearing_length=45;
 bearing_diameter=15.2;
 rod_spacing=43.25;
 carriage_length=bearing_length+13 + extruder_offset;
+shell = 1.5; // thickness of bearing shell
 
 
 //belt clip module
@@ -50,7 +52,7 @@ module bearing_cutout() {
     translate([0,0,-1]) cylinder(d=bearing_diameter-1, h=carriage_length+2);
     translate([0,0,delta/2]) cylinder(d=bearing_diameter, h=bearing_length+1);
     translate([0,0,-1]) cylinder(d=bearing_diameter, h=delta/2);
-    translate([0,0,carriage_length - delta/2]) cylinder(d=bearing_diameter, h=delta/2+1);
+    translate([0,0,carriage_length - delta/2+1]) cylinder(d=bearing_diameter, h=delta/2+1);
 
 }
 
@@ -204,7 +206,7 @@ module bltouch_mount() {
                     cylinder(r=4, h=height, center=true);
         }
 
-        #for (y=[-9, 9])
+        for (y=[-9, 9])
             translate([y, 0, 0])
                 cylinder(d=3, h=height*10, center=true);
     }
@@ -284,9 +286,8 @@ module e3dtitan(){
 }
 
 
-plate_depth = 3;
-base_width = 25;
 module titanmount(){
+    base_width = 25;
 
     rotate([-90,0,0])
     difference() {
