@@ -99,6 +99,8 @@ module cutouts() {
 
     // Cut gap around belt clips
     clip_cutouts();
+
+    place_bltouch_cutout();
 }
 
 //left bearing tube
@@ -194,11 +196,53 @@ module cooling_fan() {
     }
 }
 
+// Determined empirically; TODO: Move this to a global and use it
+base_height = bearing_diameter/2 + plate_depth - 1.1;
+module bltouch_cutout() {
+    // cutout
+    translate([-14,-7,base_height - plate_depth/2])
+    rotate([0,0,15]) {
+    translate([0,0,-34/2])
+        cylinder(d=13.5, h=34+plate_depth+1, center=true);
+
+        for (y=[-9, 9]) {
+            translate([y, 0, 0])
+                cylinder(d=3, h=plate_depth*3, center=true);
+            translate([y, 0, -plate_depth])
+                rotate([0,0,30])
+                cylinder(d=5.3, h=plate_depth*2, center=true, $fn=6);
+        }
+    }
+}
+
 module bltouch_mount() {
+    width = carriage_length - extruder_offset -  45;
+
+    hull() {
+        translate([-14,-7,base_height-plate_depth/2])
+        rotate([0,0,15]) {
+            color("white")
+            hull() {
+                for (y=[-9, 9])
+                    translate([y, 0, 0])
+                        cylinder(r=4, h=plate_depth, center=true);
+            }
+        }
+        translate([-12, -width/2-10, base_height - plate_depth/2])
+            cube([base_width-12, width, 0.5], center=true);
+        translate([-12, -width/2-10, base_height - plate_depth/2])
+            #cube([base_width-12, 2, plate_depth], center=true);
+    }
+}
+
+module bltouch() {
     // TODO: Add mounting holes for BLTouch z-probe module
     // BLTouch mounting footprint
     height=2.3;
+    translate([-14,-7,10.7])
+    rotate([0,0,15]) {
     difference() {
+        color("white")
         hull() {
             cube([6, 11.53, height], center=true);
             for (y=[-9, 9])
@@ -217,6 +261,7 @@ module bltouch_mount() {
     color("white")
     translate([0,0,-height/2-34-4.4])
         cylinder(d=1, h=8.8, center=true);
+    }
 }
 
 module titan_motor() {
@@ -336,6 +381,9 @@ module cage_fan(){
             translate([13.5,12.5,0])
             cube([20,30,15],center=true);
 
+            color("purple")
+            translate([13.5,28.5,0])
+                heat_sink_duct();
         }
 
         color("darkgrey") {
@@ -360,20 +408,129 @@ module place_heatsink_fan(){
 
 module place_cooling_fan(){
     color("blue")
-    translate([0, 65, 35])
-    rotate([-90,-5,180])
+    translate([50, 75, 35])
+    rotate([-90,-5,0])
     %cage_fan();
 
     color("orange")
-    translate([0, -10, 35])
-    rotate([-90,-5,180])
+    translate([-10, -5, 35])
+    rotate([-90,5,180])
     %cage_fan();
 }
 
+module heat_sink_duct() {
+    fan_sleeve();
+    heat_sink_duct_2();
+}
+
+module heat_sink_duct_2() {
+    translate([0,10,0])
+        rotate([0,-45,0]){
+            ducting_bent();
+            translate([-10,12,0])
+            rotate([0,0,90])
+                duct_fan(35);
+        }
+}
+
+module duct_2d() {
+    difference() {
+        circle(d=19+shell*2);
+        circle(d=19);
+    }
+}
+
+module circle_squash(squash, r) {
+    hull() {
+        translate([r*2*squash,0,0])
+            circle(r=r*(1-squash));
+        translate([-r*2*squash,0,0])
+            circle(r=r*(1-squash));
+    }
+}
+
+module duct_fan_2d(squash) {
+    difference() {
+        circle_squash(squash, 19+shell*2);
+        circle_squash(squash, 19);
+    }
+}
+
+module duct_fan_3d(squash, d) {
+    rotate([0,90,90])
+    linear_extrude(height=1, center=true)
+        circle_squash(squash, d/2);
+}
+
+module ducting(length) {
+    translate([0,length/2,0])
+    rotate([0,90,90])
+    linear_extrude(height=length, center=true)
+        duct_2d();
+}
+
+module duct_fan_solid(length, d) {
+    hull() {
+        duct_fan_3d(0, d);
+        translate([0,length-1,0])
+            duct_fan_3d(0.5, d);
+    }
+}
+
+module duct_fan(length) {
+    difference() {
+        duct_fan_solid(length, 19+shell*2);
+        translate([0,-0.005,0])
+        duct_fan_solid(length+0.01, 19);
+    }
+}
+
+module ducting_bent() {
+    translate([-12,0,-12])
+    intersection() {
+        rotate_extrude()
+            translate([12,12,0]) duct_2d();
+        cube([40,40,40]);
+    }
+}
+
+
+module fan_sleeve() {
+    translate([0,-15,0])
+    difference() {
+        union() {
+            hull() {
+                translate([0,0,0])  cube([24,30,19],center=true);
+                translate([0,5,0])
+                rotate([0,90,90])
+                cylinder(d=19+shell*2, h=40,center=true);
+            }
+        }
+        translate([0,0,0])  cube([17,30,13],center=true);
+        translate([0,25,0])
+        rotate([0,90,90])
+        hull() {
+            cylinder(d=19, h=6,center=true);
+            cylinder(d=13, h=26,center=true);
+        }
+        translate([0,0,0])  cube([20.2,30,15.5],center=true);
+        #translate([10,8.749,0]) cube([6,12.5,3],center=true);
+
+        translate([10-24,-12,0])
+        cylinder(d=48, h=22, center=true);
+    }
+}
+
+module place_bltouch_cutout(){
+    translate([0, carriage_length,0])
+        bltouch_cutout();
+}
+
 module place_bltouch(){
-    translate([-13, carriage_length-6, 10.5])
-    rotate([0,0,45])
-    %bltouch_mount();
+    translate([0, carriage_length,0]) {
+        bltouch_mount();
+        %bltouch();
+    }
 }
 
 //combine clips and carriage
@@ -383,7 +540,7 @@ module carriage(){
             basecarriage();
             titanmount();
 
-            place_heatsink_fan();
+            // place_heatsink_fan();
             place_cooling_fan();
             place_bltouch();
         }
@@ -403,8 +560,11 @@ module e3TitanPlacement(){
         titan_motor();
 }
 
-rotate([90,0,0]) {
-    carriage();
-    %e3TitanPlacement();
-}
-//beltclip2();
+rotate([-45,0,0])
+    rotate([0,-90,90])
+    heat_sink_duct_2();
+
+// rotate([90,0,0]) {
+//     carriage();
+//     %e3TitanPlacement();
+// }
