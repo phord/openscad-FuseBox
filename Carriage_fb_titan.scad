@@ -12,19 +12,25 @@ rod_spacing=43.25;
 carriage_length=bearing_length+13 + extruder_offset;
 shell = 1.5; // thickness of bearing shell
 
+// Belt clips
+belt_ofs=1.1;
+belt_gap=1.2;
+belt_post=3.5;
 
 //belt clip module
-module beltclip_(x1,x2){
+module beltclip_(p){
+    x1 = belt_ofs + belt_gap + p * belt_gap;
+    x2 = x1 + belt_post + 2 * (1-p) * belt_gap;
+
     difference(){
-
         translate([-1.85,0,0])
-            cube([12,11,8.5]);
+            cube([11+belt_post,11,8.5]);
 
-        translate([2.2,-1,1])
-            cube([1.1,12,11]);
+        translate([belt_ofs+belt_gap,-1,1])
+            cube([belt_gap,12,11]);
 
-        translate([5.25,-1,1])
-            cube([1.1,12,11]);
+        translate([belt_ofs+belt_gap*2+belt_post /*5.25*/,-1,1])
+            cube([belt_gap,12,11]);
 
         translate([-5,11,0])
         rotate([20.6,0,0])
@@ -39,12 +45,14 @@ module beltclip_(x1,x2){
 }
 
 module beltclip(){
-    beltclip_(3.4, 5.1);
+    beltclip_(1);
+    // beltclip_(3.4, 5.1);
 }
 
 //belt clip module
 module beltclip2(){
-    beltclip_(2.1, 6.5);
+    beltclip_(0);
+    // beltclip_(belt_ofs+belt_gap, 6.5);
 }
 
 module bearing_cutout() {
@@ -143,20 +151,24 @@ module clips() {
         topclip();
 }
 
-module clip_cutout() {
-    translate([4.25,3.75,6])
+module clip_cutout(p) {
+    dx = belt_gap * 2 + belt_post;
+    x1 = belt_ofs + dx;
+    translate([1.4,-0.010,0])
     hull(){
-        cube([4.2,8,9], center=true);
-        translate([0,5.25,0])
-        cylinder(d=4.2, h=9, center=true);
+        cube([dx,8,9]);
+        translate([dx-1,10.25,0])
+        cylinder(d=2, h=9);
+        translate([1,10.25,0])
+        cylinder(d=2, h=9);
     }
  }
 
 module topclip_cutouts() {
-    translate([9.5,0,1])
+    translate([10.5,0,1])
         clip_cutout();
 
-    translate([33.8,carriage_length,1])
+    translate([32.7,carriage_length,1])
     rotate([0,0,180])
         clip_cutout();
 }
