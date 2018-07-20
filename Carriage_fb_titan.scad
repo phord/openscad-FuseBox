@@ -1,5 +1,7 @@
 $fn=64;
 
+use <ducting.scad>;
+
 // Extruder mount
 extruder_offset = 10;
 plate_depth = 3;
@@ -208,6 +210,10 @@ module cooling_fan() {
     }
 }
 
+module m3_nut(height) {
+    cylinder(d=5.3, h=height, center=true, $fn=6);
+}
+
 // Determined empirically; TODO: Move this to a global and use it
 base_height = bearing_diameter/2 + plate_depth - 1.1;
 module bltouch_cutout() {
@@ -222,7 +228,7 @@ module bltouch_cutout() {
                 cylinder(d=3, h=plate_depth*3, center=true);
             translate([y, 0, -plate_depth])
                 rotate([0,0,30])
-                cylinder(d=5.3, h=plate_depth*2, center=true, $fn=6);
+                m3_nut(plate_depth*2);
         }
     }
 }
@@ -240,10 +246,10 @@ module bltouch_mount() {
                         cylinder(r=4, h=plate_depth, center=true);
             }
         }
-        translate([-12, -width/2-10, base_height - plate_depth/2])
-            cube([base_width-12, width, 0.5], center=true);
-        translate([-12, -width/2-10, base_height - plate_depth/2])
-            #cube([base_width-12, 2, plate_depth], center=true);
+        translate([-5, -width/2-20, base_height - plate_depth/2])
+            cube([base_width-12, width, plate_depth], center=true);
+        translate([-5, -width/2-20, base_height - plate_depth/2])
+            cube([base_width-12, 2, plate_depth], center=true);
     }
 }
 
@@ -344,8 +350,6 @@ module e3dtitan(){
 
 
 module titanmount(){
-    base_width = 25;
-
     rotate([-90,0,0])
     difference() {
         translate([21.6-13.5,-43.2/2-6.5-shell,21.5])
@@ -353,19 +357,17 @@ module titanmount(){
         {
             translate([plate_depth/2, -extruder_offset, -plate_depth/2])
             difference() {
+                translate([0, extruder_offset/2, 0])
                 union() {
                     // Vertical plate
                     translate([0,0,-plate_depth/2])
-                        cube([43, 43, plate_depth], center=true);
-                    // Vertical shell strength
-                    translate([-43/2 - 10/2,0,-plate_depth/2])
-                        cube([10, 43, plate_depth], center=true);
+                        cube([43, 43+extruder_offset, plate_depth], center=true);
                     // Bottom plate
                     translate([-43/2-plate_depth/2, 0, -base_width/2])
-                        cube([plate_depth, 43, base_width], center=true);
+                        cube([plate_depth, 43+extruder_offset, base_width], center=true);
                     // Top plate
                     translate([43/2+plate_depth/2, 0, -base_width/2])
-                        cube([plate_depth, 43, base_width], center=true);
+                        cube([plate_depth, 43+extruder_offset, base_width], center=true);
                 }
 
                 // Motor flange hole
@@ -395,7 +397,7 @@ module cage_fan(){
 
             color("purple")
             translate([13.5,28.5,0])
-                heat_sink_duct();
+                heat_sink_duct(shell);
         }
 
         color("darkgrey") {
@@ -413,9 +415,21 @@ module cage_fan(){
 }
 
 module place_heatsink_fan(){
-    translate([60, 29, 15])
-    rotate([-90,15,-90])
-    %cage_fan();
+    translate([8.6-base_width, 15, plate_depth])
+    rotate([-90,-90,-90])
+    mirror([0,0,0])
+        raised_screw_hole();
+
+    translate([8.6-base_width, 15+32.7, 43+10+2*plate_depth])
+    rotate([-90,90,-90])
+    mirror([0,1,0])
+        raised_screw_hole();
+
+    translate([-base_width-2, 28, 36+plate_depth])
+    rotate([-90,0,90])
+    {
+        %cage_fan();
+    }
 }
 
 module place_cooling_fan(){
@@ -430,127 +444,13 @@ module place_cooling_fan(){
     %cage_fan();
 }
 
-module heat_sink_duct() {
-    fan_sleeve();
-    heat_sink_duct_2();
-}
-
-module heat_sink_duct_2() {
-    translate([0,10,0])
-        rotate([0,-45,0]){
-            ducting_bent();
-            translate([-10-1.9,12,0])
-            rotate([0,0,90])
-                duct_fan(35);
-        }
-}
-
-module duct_2d() {
-    difference() {
-        circle(d=19+shell*2);
-        circle(d=19);
-    }
-}
-
-module circle_squash(squash, r) {
-    hull() {
-        translate([r*2*squash,0,0])
-            circle(r=r*(1-squash));
-        translate([-r*2*squash,0,0])
-            circle(r=r*(1-squash));
-    }
-}
-
-module duct_fan_3d(squash, d) {
-    rotate([0,90,90])
-    linear_extrude(height=1, center=true)
-        circle_squash(squash, d/2);
-}
-
-module ducting(length) {
-    translate([0,length/2,0])
-    rotate([0,90,90])
-    linear_extrude(height=length, center=true)
-        duct_2d();
-}
-
-module duct_fan_solid(length, d, shell) {
-    difference() {
-    minkowski() {
-        hull() {
-            duct_fan_3d(0, d);
-            translate([0,length-1,0])
-                duct_fan_3d(0.5, d);
-        }
-        cube([shell, shell, shell/2], center=true);
-    }
-        translate([0,-shell/2-0.01,0])
-            cube([50,shell+0.02,50], center=true);
-        translate([0,length-0.01,0])
-            cube([50,shell+0.02,50], center=true);
-    }
-}
-
-module duct_fan(length) {
-    difference() {
-        duct_fan_solid(length, 19, shell*2);
-        translate([0,-0.005,0])
-        duct_fan_solid(length+0.01, 19, 0);
-    }
-}
-
-module ducting_bent_solid(d, offset, extra) {
-    translate([-offset,0,-offset])
-    intersection() {
-        rotate_extrude()
-            translate([offset,offset,0])
-                circle(d=d);
-        translate([-extra, -extra, -extra])
-            cube([d*2.5, d*2.5, d*2.5]);
-    }
-}
-
-module ducting_bent() {
-    difference() {
-        ducting_bent_solid(19+2*shell, 12, 0);
-        ducting_bent_solid(19, 12, 0.01);
-    }
-}
-
-
-module fan_sleeve() {
-    translate([0,-15,0])
-    difference() {
-        union() {
-            hull() {
-                translate([0,0,0])  cube([24,30,19],center=true);
-                translate([0,5,0])
-                rotate([0,90,90])
-                cylinder(d=19+shell*2, h=40,center=true);
-            }
-        }
-        translate([0,0,0])  cube([17,30,13],center=true);
-        translate([0,25,0])
-        rotate([0,90,90])
-        hull() {
-            cylinder(d=19, h=6,center=true);
-            cylinder(d=13, h=26,center=true);
-        }
-        translate([0,0,0])  cube([20.2,30,15.5],center=true);
-        #translate([10,8.749,0]) cube([6,12.5,3],center=true);
-
-        translate([10-24,-12,0])
-        cylinder(d=48, h=22, center=true);
-    }
-}
-
 module place_bltouch_cutout(){
-    translate([0, carriage_length,0])
+    translate([0, carriage_length+10,0])
         bltouch_cutout();
 }
 
 module place_bltouch(){
-    translate([0, carriage_length,0]) {
+    translate([0, carriage_length+10,0]) {
         bltouch_mount();
         %bltouch();
     }
@@ -563,13 +463,31 @@ module carriage(){
             basecarriage();
             titanmount();
 
-            // place_heatsink_fan();
-            place_cooling_fan();
+            place_heatsink_fan();
+            // place_cooling_fan();
             place_bltouch();
         }
         cutouts();
     }
     clips();
+}
+
+// Place a mountpoint against a flat surface
+module raised_screw_hole() {
+    depth=4;
+    width=18;
+    d=width/2.3;
+    difference() {
+        hull() {
+            cylinder(d=d, h=depth, center=true);
+            translate([d*0.5,d/2,0])
+                cube([0.1, width, depth], center=true);
+        }
+        translate([0,0,depth-2])
+        rotate([0,0,30])
+            m3_nut(3);
+        cylinder(d=3, h=depth+0.2, center=true);
+    }
 }
 
 //Place e3d-titan for alignment comparison
@@ -583,11 +501,11 @@ module e3TitanPlacement(){
         titan_motor();
 }
 
-rotate([-45,0,0])
-    rotate([0,-90,90])
-    heat_sink_duct_2();
+// rotate([-45,0,0])
+//     rotate([0,-90,90])
+//         heat_sink_duct();
 
-// rotate([90,0,0]) {
-//     carriage();
-//     %e3TitanPlacement();
-// }
+rotate([90,0,0]) {
+    carriage();
+    %e3TitanPlacement();
+}
