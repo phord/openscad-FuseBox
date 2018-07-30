@@ -1,12 +1,33 @@
 
 
+sink_offset=55;
 module heat_sink_duct(shell) {
+    difference() {
+        heat_sink_duct_solid(0);
+        heat_sink_duct_solid(shell);
+
+        translate([0,25,-sink_offset/2-22])
+        rotate([90,0,0]) {
+            cylinder(h=15, d=22, center=true);
+            translate([0,0,7])
+                cylinder(h=15, d=24, center=true);
+        }
+    }
+}
+
+module heat_sink_duct_solid(shell) {
+
     fan_sleeve();
-    translate([0,9.8,0])
-    rotate([0,-90,0])
-    #rect_duct_fan(8.5, shell);
-    // translate([0,8,0])
-    // heat_sink_duct_2();
+    translate([0,16,0])
+    cube([24-shell*2,13+shell/3,19-shell*2], center=true);
+
+    translate([0,23,2.6])
+    rotate([0,90,0])
+    cylinder(h=24-shell*2, d=14-shell*2, center=true);
+
+    translate([0,25,-26])
+    cube([24-shell*2,10-shell*2,5+sink_offset+shell/3], center=true);
+
 }
 
 module heat_sink_duct_2() {
@@ -149,13 +170,10 @@ module fan_sleeve() {
         }
         translate([0,0,0])  cube([17,30,13],center=true);
         translate([0,25,0])
-        rotate([0,90,90])
-        hull() {
-            cylinder(d=19, h=6,center=true);
-            cylinder(d=13, h=26,center=true);
-        }
+        // rotate([0,90,90])
+            cube([17,30,13],center=true);
         translate([0,0,0])  cube([20.2,30,15.5],center=true);
-        #translate([10,8.749,0]) cube([6,12.5,3],center=true);
+        translate([10,8.749,0]) cube([6,12.5,3],center=true);
 
         translate([10-24,-12,0])
         cylinder(d=48, h=22, center=true);

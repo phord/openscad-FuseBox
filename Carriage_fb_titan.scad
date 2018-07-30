@@ -16,8 +16,11 @@ shell = 1.5; // thickness of bearing shell
 
 // Belt clips
 belt_ofs=1.1;
-belt_gap=1.2;
+belt_gap=1.5;
 belt_post=3.5;
+
+bltouch_angle=15;
+bltouch_swing=7;
 
 //belt clip module
 module beltclip_(p){
@@ -59,10 +62,12 @@ module beltclip2(){
 
 module bearing_cutout() {
     delta = carriage_length - bearing_length - 1;
-    translate([0,0,-1]) cylinder(d=bearing_diameter-1, h=carriage_length+2);
+    #translate([0,0,-carriage_length]) cylinder(d=9, h=carriage_length*3);
+    translate([0,0,-1]) cylinder(d=bearing_diameter-0.6, h=carriage_length+2);
     translate([0,0,delta/2]) cylinder(d=bearing_diameter, h=bearing_length+1);
+    translate([0,0,bearing_length+delta/2+2]) cylinder(d=bearing_diameter, h=delta/2);
     translate([0,0,-1]) cylinder(d=bearing_diameter, h=delta/2);
-    translate([0,0,carriage_length - delta/2+1]) cylinder(d=bearing_diameter, h=delta/2+1);
+    //translate([0,0,carriage_length - delta/2+1]) cylinder(d=bearing_diameter, h=delta/2+1);
 
 }
 
@@ -217,39 +222,51 @@ module m3_nut(height) {
 // Determined empirically; TODO: Move this to a global and use it
 base_height = bearing_diameter/2 + plate_depth - 1.1;
 module bltouch_cutout() {
+    gap = 2.5;
     // cutout
-    translate([-14,-7,base_height - plate_depth/2])
-    rotate([0,0,15]) {
-    translate([0,0,-34/2])
-        cylinder(d=13.5, h=34+plate_depth+1, center=true);
+    translate([-14-bltouch_swing,-7,base_height - plate_depth - gap/2])
+    rotate([0,0,bltouch_angle]) {
+        bltouch_head(gap, 5, 0.5);
+
+        translate([0,0,-34/2])
+            cylinder(d=13.5, h=34+plate_depth/2, center=true);
+        cylinder(d=3, h=plate_depth*3, center=true);
+
+        translate([0,0,-34/2-plate_depth-gap-.1])
+            cylinder(d=17, h=34, center=true);
 
         for (y=[-9, 9]) {
             translate([y, 0, 0])
                 cylinder(d=3, h=plate_depth*3, center=true);
-            translate([y, 0, -plate_depth])
+            translate([y, 0, -plate_depth*1.5])
                 rotate([0,0,30])
-                m3_nut(plate_depth*2);
+                m3_nut(plate_depth/2);
         }
     }
 }
 
+// The shape of the bltouch head
+module bltouch_head(height, r=4, extra=0) {
+    hull() {
+        cube([6+extra, 11.53+extra, height], center=true);
+        for (y=[-9, 9])
+            translate([y, 0, 0])
+                cylinder(r=r+extra, h=height+extra, center=true);
+    }
+}
+
 module bltouch_mount() {
-    width = carriage_length - extruder_offset -  45;
+    width = carriage_length - extruder_offset -  50;
+    gap = 2.5;
+    height = plate_depth * 2 + gap;
 
     hull() {
-        translate([-14,-7,base_height-plate_depth/2])
-        rotate([0,0,15]) {
-            color("white")
-            hull() {
-                for (y=[-9, 9])
-                    translate([y, 0, 0])
-                        cylinder(r=4, h=plate_depth, center=true);
-            }
+        translate([-14-bltouch_swing,-7,base_height-height/2])
+        rotate([0,0,bltouch_angle]) {
+            bltouch_head(height, 5);
         }
-        translate([-5, -width/2-20, base_height - plate_depth/2])
-            cube([base_width-12, width, plate_depth], center=true);
-        translate([-5, -width/2-20, base_height - plate_depth/2])
-            cube([base_width-12, 2, plate_depth], center=true);
+        translate([-base_width/2, -width/2-21, base_height - plate_depth/2])
+            #cube([base_width/2, 0.1, plate_depth], center=true);
     }
 }
 
@@ -257,16 +274,11 @@ module bltouch() {
     // TODO: Add mounting holes for BLTouch z-probe module
     // BLTouch mounting footprint
     height=2.3;
-    translate([-14,-7,10.7])
-    rotate([0,0,15]) {
+    translate([-14-bltouch_swing,-7,9.5 - plate_depth - height/2])
+    rotate([0,0,bltouch_angle]) {
     difference() {
         color("white")
-        hull() {
-            cube([6, 11.53, height], center=true);
-            for (y=[-9, 9])
-                translate([y, 0, 0])
-                    cylinder(r=4, h=height, center=true);
-        }
+            bltouch_head(height);
 
         for (y=[-9, 9])
             translate([y, 0, 0])
@@ -348,6 +360,22 @@ module e3dtitan(){
     }
 }
 
+module holey_plate(x,y) {
+    r = y * 0.2;
+    difference() {
+        cube([x, y, plate_depth], center=true);
+        for (d=[-1:1]) {
+            side=(d==0) ? -1 : 1;
+            translate([d*r*3,0,0])
+            hull() {
+                translate([-r*.5,0,0])
+                    cylinder(r=r, h=plate_depth+0.1, center=true);
+                translate([r*1.2,r*side,0])
+                    cylinder(r=r/10, h=plate_depth+0.1, center=true);
+            }
+        }
+    }
+}
 
 module titanmount(){
     rotate([-90,0,0])
@@ -355,28 +383,38 @@ module titanmount(){
         translate([21.6-13.5,-43.2/2-6.5-shell,21.5])
         rotate([-90,0,-90])
         {
-            translate([plate_depth/2, -extruder_offset, -plate_depth/2])
-            difference() {
-                translate([0, extruder_offset/2, 0])
-                union() {
-                    // Vertical plate
-                    translate([0,0,-plate_depth/2])
-                        cube([43, 43+extruder_offset, plate_depth], center=true);
-                    // Bottom plate
-                    translate([-43/2-plate_depth/2, 0, -base_width/2])
-                        cube([plate_depth, 43+extruder_offset, base_width], center=true);
-                    // Top plate
-                    translate([43/2+plate_depth/2, 0, -base_width/2])
-                        cube([plate_depth, 43+extruder_offset, base_width], center=true);
+            translate([plate_depth/2, -extruder_offset, -plate_depth/2]) {
+                difference() {
+                    translate([0, extruder_offset/2, 0])
+                    union() {
+                        // Vertical plate
+                        translate([0,0,-plate_depth/2])
+                            cube([43+plate_depth*2, 43+extruder_offset, plate_depth], center=true);
+                        // Bottom plate
+                        translate([-43/2-plate_depth/2, 0, 0.1-base_width/2-plate_depth])
+                            rotate([90,0,-90])
+                            holey_plate(43+extruder_offset, base_width+0.1);
+                            // cube([plate_depth, 43+extruder_offset, base_width+plate_depth], center=true);
+                        // Top plate
+                        translate([43/2+plate_depth/2, 0, 0.1-base_width/2-plate_depth])
+                            rotate([90,0,-90])
+                            holey_plate(43+extruder_offset, base_width+0.1);
+                            // cube([plate_depth, 43+extruder_offset, base_width+plate_depth], center=true);
+                    }
+
+                    // Motor flange hole
+                    cylinder(d=23, h=plate_depth*2+0.2, center=true);
+
+                    // screw-holes
+                    translate([0, 0, -plate_depth/2])
+                        four_screw_holes(31, 4.5, plate_depth+0.2);
                 }
-
-                // Motor flange hole
-                cylinder(d=23, h=plate_depth*2+0.2, center=true);
-
-                // screw-holes
-                translate([0, 0, -plate_depth/2])
-                    four_screw_holes(31, 4.5, plate_depth+0.2);
             }
+            // Vertical stabilizer
+            translate([plate_depth/2, 43/2-plate_depth/2, 0.1-base_width/2-1.5*plate_depth])
+                rotate([90,0,0])
+                holey_plate(43+0.2, base_width+0.1);
+                // cube([43+0.2, plate_depth, base_width+0.2], center=true);
         }
     }
 }
@@ -415,17 +453,18 @@ module cage_fan(){
 }
 
 module place_heatsink_fan(){
-    translate([8.6-base_width, 15, plate_depth])
-    rotate([-90,-90,-90])
-    mirror([0,0,0])
-        raised_screw_hole();
+    translate([8.6-base_width-plate_depth, 0,0]) {
+        translate([0.1, 4-0.1+plate_depth, 16.15+plate_depth])
+        rotate([-90,0,-90])
+        mirror([0,1,0])
+            raised_screw_hole(9.2);
 
-    translate([8.6-base_width, 15+32.7, 43+10+2*plate_depth])
-    rotate([-90,90,-90])
-    mirror([0,1,0])
-        raised_screw_hole();
-
-    translate([-base_width-2, 28, 36+plate_depth])
+        translate([0, 15+32.7, 43+10+2*plate_depth])
+        rotate([-90,90,-90])
+        mirror([0,1,0])
+            raised_screw_hole();
+    }
+    translate([-base_width-4, 28, 36+plate_depth])
     rotate([-90,0,90])
     {
         %cage_fan();
@@ -456,6 +495,12 @@ module place_bltouch(){
     }
 }
 
+module place_bltouch_mount(){
+    translate([0, carriage_length+10,0]) {
+        bltouch_mount();
+    }
+}
+
 //combine clips and carriage
 module carriage(){
     difference() {
@@ -466,6 +511,7 @@ module carriage(){
             place_heatsink_fan();
             // place_cooling_fan();
             place_bltouch();
+            place_bltouch_mount();
         }
         cutouts();
     }
@@ -473,20 +519,21 @@ module carriage(){
 }
 
 // Place a mountpoint against a flat surface
-module raised_screw_hole() {
+module raised_screw_hole(d=7.82) {
     depth=4;
     width=18;
-    d=width/2.3;
     difference() {
         hull() {
             cylinder(d=d, h=depth, center=true);
-            translate([d*0.5,d/2,0])
+            translate([d/2,d/2,0])
                 cube([0.1, width, depth], center=true);
         }
-        translate([0,0,depth-2])
-        rotate([0,0,30])
-            m3_nut(3);
-        cylinder(d=3, h=depth+0.2, center=true);
+        translate([7.82-d,0,0]) {
+            translate([0,0,depth-2])
+            rotate([0,0,30])
+                m3_nut(3);
+            cylinder(d=3, h=depth+0.2, center=true);
+        }
     }
 }
 
@@ -507,5 +554,5 @@ module e3TitanPlacement(){
 
 rotate([90,0,0]) {
     carriage();
-    %e3TitanPlacement();
+    // %e3TitanPlacement();
 }
