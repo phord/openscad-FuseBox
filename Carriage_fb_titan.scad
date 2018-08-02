@@ -1,11 +1,21 @@
 $fn=64;
 
+
+/** Ideas:
+holey plate can have two columns of holes if it gets wider than height/2-ish
+Bottom fan mount can be moved on top of the bltouch mount
+Top fan mount is extended into space.  Top plate needs to be lengthened to hold it.
+BLTouch mount can be moved around a bit more, but my scalar defines are not up to snuff yet.
+Something is broken with the top clips, obviously
+**/
+
 use <ducting.scad>;
+use <beltclips.scad>;
 
 // Extruder mount
-extruder_offset = 10;
+extruder_offset = 3;    // Must be at least plate_depth, or else vertical wall must be removed
 plate_depth = 3;
-base_width = 25;
+base_width = 28;
 
 //Carriage dimensions
 bearing_length=45;
@@ -15,51 +25,13 @@ carriage_length=bearing_length+13 + extruder_offset;
 shell = 1.5; // thickness of bearing shell
 
 // Belt clips
-belt_ofs=1.1;
 belt_gap=1.5;
-belt_post=3.5;
+belt_post=4.5;
+belt_height=8.5;
 
 // BLTouch
-bltouch_angle=90;
+bltouch_angle=10;
 bltouch_swing=17;
-
-//belt clip module
-module beltclip_(p){
-    x1 = belt_ofs + belt_gap + p * belt_gap;
-    x2 = x1 + belt_post + 2 * (1-p) * belt_gap;
-
-    difference(){
-        translate([-1.85,0,0])
-            cube([11+belt_post,11,8.5]);
-
-        translate([belt_ofs+belt_gap,-1,1])
-            cube([belt_gap,12,11]);
-
-        translate([belt_ofs+belt_gap*2+belt_post /*5.25*/,-1,1])
-            cube([belt_gap,12,11]);
-
-        translate([-5,11,0])
-        rotate([20.6,0,0])
-            cube([16,5,9]);
-    }
-    for (y=[1,3,5,7]) {
-        translate([x1,y+.5,0])
-            cylinder(d=1, h=8.5);
-        translate([x2,y+.5,0])
-            cylinder(d=1, h=8.5);
-    }
-}
-
-module beltclip(){
-    beltclip_(1);
-    // beltclip_(3.4, 5.1);
-}
-
-//belt clip module
-module beltclip2(){
-    beltclip_(0);
-    // beltclip_(belt_ofs+belt_gap, 6.5);
-}
 
 module bearing_cutout() {
     delta = carriage_length - bearing_length - 1;
@@ -97,7 +69,7 @@ module cutouts() {
     }
 
     // cut hotend hole
-    spacing = rod_spacing-bearing_diameter-shell*2;
+    spacing = rod_spacing-bearing_diameter-shell*2 - 1;
     translate([19.5,47/2,32])
     rotate([0,-90,0])
     translate([0, -5/2, 0]) {
@@ -141,39 +113,45 @@ module basecarriage(){
         cube([rod_spacing,carriage_length,bearing_diameter+shell*2]);
 }
 
+clip_dx = 14;
 //top belt clips
-module topclip(){
-    translate([9.5,0,1])
-        beltclip2();
+module topclip() {
+    translate([9.5,0,19.5])
+        beltclip();
 
-    translate([33.8,carriage_length,1])
-    rotate([0,0,180])
+    translate([-clip_dx+8,carriage_length+shell,19.5])
+        mirror([0,1,0])
         beltclip();
 }
 
-//lower belt clip
-module clips() {
-    topclip();
-    translate([43.35,0,0])
-        rotate([180,0,180])
-        topclip();
+//bottom belt clips
+module bottomclip() {
+    translate([9.5,0,19.5])
+        beltclip2();
+
+    translate([-clip_dx+8,carriage_length+shell,19.5])
+        mirror([0,1,0])
+        beltclip2();
 }
 
-module clip_cutout(p) {
-    dx = belt_gap * 2 + belt_post;
-    x1 = belt_ofs + dx;
-    translate([1.4,-0.010,0])
-    hull(){
-        cube([dx,8,9]);
-        translate([dx-1,10.25,0])
-        cylinder(d=2, h=9);
-        translate([1,10.25,0])
-        cylinder(d=2, h=9);
-    }
+module clips() {
+    //lower belt clips
+    translate([clip_dx, -0.7, -belt_height - shell])
+    topclip();
+
+    //lower belt clips
+    translate([29.35, -.8, 11])
+        rotate([180,0,180])
+        bottomclip();
+}
+
+module clip_cutout() {
+    translate([clip_dx,-0.010,19.5-belt_height - shell])
+    beltclip_cutout(shell);
  }
 
 module topclip_cutouts() {
-    translate([10.5,0,1])
+    translate([9.5,0,1])
         clip_cutout();
 
     translate([32.7,carriage_length,1])
@@ -341,7 +319,7 @@ module e3dtitan(){
 }
 
 module holey_plate(x,y) {
-    r = y * 0.2;
+    r = min(y * 0.2, x * 0.1);
     difference() {
         cube([x, y, plate_depth], center=true);
         for (d=[-1:1]) {
@@ -367,7 +345,7 @@ module titanmount(){
                 difference() {
                     translate([0, extruder_offset/2, 0])
                     union() {
-                        // Vertical plate
+                        // Vertical plate (separator)
                         translate([0,0,-plate_depth/2])
                             cube([43+plate_depth*2, 43+extruder_offset, plate_depth], center=true);
                         // Bottom plate
@@ -390,11 +368,12 @@ module titanmount(){
                         four_screw_holes(31, 4.5, plate_depth+0.2);
                 }
             }
-            // Vertical stabilizer
-            translate([plate_depth/2, 43/2-plate_depth/2, 0.1-base_width/2-1.5*plate_depth])
-                rotate([90,0,0])
-                holey_plate(43+0.2, base_width+0.1);
-                // cube([43+0.2, plate_depth, base_width+0.2], center=true);
+            if ( extruder_offset >= plate_depth )
+                // Vertical stabilizer
+                translate([plate_depth/2, 43/2-plate_depth/2, 0.1-base_width/2-1.5*plate_depth])
+                    rotate([90,0,0])
+                    holey_plate(43+0.2, base_width+0.1);
+                    // cube([43+0.2, plate_depth, base_width+0.2], center=true);
         }
     }
 }
@@ -543,5 +522,5 @@ module e3TitanPlacement(){
 
 rotate([90,0,0]) {
     carriage();
-    // %e3TitanPlacement();
+    %e3TitanPlacement();
 }
