@@ -19,8 +19,9 @@ belt_ofs=1.1;
 belt_gap=1.5;
 belt_post=3.5;
 
-bltouch_angle=15;
-bltouch_swing=7;
+// BLTouch
+bltouch_angle=90;
+bltouch_swing=17;
 
 //belt clip module
 module beltclip_(p){
@@ -106,7 +107,7 @@ module cutouts() {
                 translate([11.1+2+extruder_offset, -1.5, -30])
                     cylinder( d=spacing, h=30, center=true);
                 // Make room for air flow
-                translate([3, spacing/2-14.25, -30])
+                translate([5, spacing/2-14.25, -30])
                     cylinder( d=spacing, h=30, center=true);
             }
         }
@@ -194,27 +195,6 @@ module four_screw_holes(offset, d, height) {
                 cylinder(d=d, h=height, center=true);
 }
 
-module heatsink_fan() {
-    // TODO: Add mounting holes for fan to blow on e3d
-    // 30mm box fan placeholder
-    translate([0,0,-3])
-    difference(){
-        cube([30,30,6], center=true);
-        cylinder(d=29,h=11, center=true);
-        #four_screw_holes(24, 3, 22);
-    }
-}
-
-module cooling_fan() {
-    // TODO: Add mounting holes for fan to blow on printed part
-    // 40mm box fan placeholder
-    difference(){
-        cube([40,40,10], center=true);
-        cylinder(d=39,h=11, center=true);
-        #four_screw_holes(32, 4.5, 30);
-    }
-}
-
 module m3_nut(height) {
     cylinder(d=5.3, h=height, center=true, $fn=6);
 }
@@ -224,7 +204,7 @@ base_height = bearing_diameter/2 + plate_depth - 1.1;
 module bltouch_cutout() {
     gap = 2.5;
     // cutout
-    translate([-14-bltouch_swing,-7,base_height - plate_depth - gap/2])
+    translate([-14-bltouch_swing,14,base_height - plate_depth - gap/2])
     rotate([0,0,bltouch_angle]) {
         bltouch_head(gap, 5, 0.5);
 
@@ -256,17 +236,17 @@ module bltouch_head(height, r=4, extra=0) {
 }
 
 module bltouch_mount() {
-    width = carriage_length - extruder_offset -  50;
     gap = 2.5;
     height = plate_depth * 2 + gap;
+    interface = 15;
 
     hull() {
-        translate([-14-bltouch_swing,-7,base_height-height/2])
+        translate([-14-bltouch_swing,14,base_height-height/2+0.1])
         rotate([0,0,bltouch_angle]) {
             bltouch_head(height, 5);
         }
-        translate([-base_width/2, -width/2-21, base_height - plate_depth/2])
-            #cube([base_width/2, 0.1, plate_depth], center=true);
+        translate([-base_width/2, interface/2, base_height - plate_depth/2])
+            #cube([0.1, interface, plate_depth], center=true);
     }
 }
 
@@ -274,7 +254,7 @@ module bltouch() {
     // TODO: Add mounting holes for BLTouch z-probe module
     // BLTouch mounting footprint
     height=2.3;
-    translate([-14-bltouch_swing,-7,9.5 - plate_depth - height/2])
+    translate([-14-bltouch_swing,14,9.5 - plate_depth - height/2])
     rotate([0,0,bltouch_angle]) {
     difference() {
         color("white")
@@ -368,9 +348,9 @@ module holey_plate(x,y) {
             side=(d==0) ? -1 : 1;
             translate([d*r*3,0,0])
             hull() {
-                translate([-r*.5,0,0])
+                translate([-r*.5,side*2,0])
                     cylinder(r=r, h=plate_depth+0.1, center=true);
-                translate([r*1.2,r*side,0])
+                translate([r*1.2,r*side+2*side-r/10*side,0])
                     cylinder(r=r/10, h=plate_depth+0.1, center=true);
             }
         }
@@ -421,7 +401,9 @@ module titanmount(){
 
 module cage_fan(){
     difference() {
-        color("darkgrey") {
+        union() {
+            // 50mm squirrel cage fan
+            color("darkgrey") {
             cylinder(d=48, h=15,center=true);
             rotate([0,0,-45])
             hull() {
@@ -432,18 +414,15 @@ module cage_fan(){
             }
             translate([13.5,12.5,0])
             cube([20,30,15],center=true);
-
-            color("purple")
-            translate([13.5,28.5,0])
-                heat_sink_duct(shell);
+            }
         }
 
         color("darkgrey") {
         rotate([0,0,-45]) {
             translate([-28,0,0])
-            #cylinder(d=4,h=40,center=true);
+            cylinder(d=4,h=40,center=true);
             translate([28,0,0])
-            #cylinder(d=4,h=40,center=true);
+            cylinder(d=4,h=40,center=true);
         }
         cylinder(d=46, h=13,center=true);
         translate([13.5,12.6,0])
@@ -464,10 +443,10 @@ module place_heatsink_fan(){
         mirror([0,1,0])
             raised_screw_hole();
     }
-    translate([-base_width-4, 28, 36+plate_depth])
+    translate([-base_width-6, 28, 36+plate_depth])
     rotate([-90,0,90])
     {
-        %cage_fan();
+        cage_fan();
     }
 }
 
@@ -484,21 +463,29 @@ module place_cooling_fan(){
 }
 
 module place_bltouch_cutout(){
-    translate([0, carriage_length+10,0])
+    translate([0, 0,0])
         bltouch_cutout();
 }
 
 module place_bltouch(){
-    translate([0, carriage_length+10,0]) {
+    translate([0, 0,0]) {
         bltouch_mount();
         %bltouch();
     }
 }
 
 module place_bltouch_mount(){
-    translate([0, carriage_length+10,0]) {
+    translate([0, 0,0]) {
         bltouch_mount();
     }
+}
+
+module place_heatsink_duct() {
+    translate([-base_width-6, 28, 36+plate_depth])
+    rotate([-90,0,90])
+    color("purple")
+    translate([13.5,28.5,0])
+        heat_sink_duct(shell);
 }
 
 //combine clips and carriage
@@ -510,12 +497,14 @@ module carriage(){
 
             place_heatsink_fan();
             // place_cooling_fan();
+            place_heatsink_duct();
             place_bltouch();
             place_bltouch_mount();
         }
         cutouts();
     }
     clips();
+    place_heatsink_duct();
 }
 
 // Place a mountpoint against a flat surface
