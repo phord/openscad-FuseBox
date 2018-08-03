@@ -1,7 +1,5 @@
 $fn=64;
 
-shell = 1.5; // thickness of bearing shell
-
 // Belt clips
 belt_gap=1.5;
 belt_post=4.5;
@@ -86,7 +84,7 @@ module beltclip(shell){
 }
 
 //belt clip module
-module beltclip2(){
+module beltclip2(shell){
     beltclip_(shell, -1);
 }
 

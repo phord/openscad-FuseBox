@@ -1,19 +1,20 @@
 $fn=64;
 
 
-/** Ideas:
+/** Ideas/Bugs:
 holey plate can have two columns of holes if it gets wider than height/2-ish
 Bottom fan mount can be moved on top of the bltouch mount
 Top fan mount is extended into space.  Top plate needs to be lengthened to hold it.
 BLTouch mount can be moved around a bit more, but my scalar defines are not up to snuff yet.
 Something is broken with the top clips, obviously
+Beltclips scalars are duplicated in beltclips.scad. Should be passed as parameters instead.
 **/
 
 use <ducting.scad>;
 use <beltclips.scad>;
 
 // Extruder mount
-extruder_offset = 3;    // Must be at least plate_depth, or else vertical wall must be removed
+extruder_offset = 7;    // Must be at least plate_depth, or else vertical wall must be removed
 plate_depth = 3;
 base_width = 28;
 
@@ -117,21 +118,21 @@ clip_dx = 14;
 //top belt clips
 module topclip() {
     translate([9.5,0,19.5])
-        beltclip();
+        beltclip(shell);
 
     translate([-clip_dx+8,carriage_length+shell,19.5])
         mirror([0,1,0])
-        beltclip();
+        beltclip(shell);
 }
 
 //bottom belt clips
 module bottomclip() {
     translate([9.5,0,19.5])
-        beltclip2();
+        beltclip2(shell);
 
     translate([-clip_dx+8,carriage_length+shell,19.5])
         mirror([0,1,0])
-        beltclip2();
+        beltclip2(shell);
 }
 
 module clips() {
@@ -411,18 +412,18 @@ module cage_fan(){
 }
 
 module place_heatsink_fan(){
-    translate([8.6-base_width-plate_depth, 0,0]) {
-        translate([0.1, 4-0.1+plate_depth, 16.15+plate_depth])
+    translate([8.6-base_width-plate_depth, extruder_offset-10.8,0]) {
+        translate([0.1, extruder_offset-2+plate_depth, 16.15+plate_depth])
         rotate([-90,0,-90])
         mirror([0,1,0])
-            raised_screw_hole(9.2);
+            raised_screw_hole();
 
         translate([0, 15+32.7, 43+10+2*plate_depth])
         rotate([-90,90,-90])
         mirror([0,1,0])
             raised_screw_hole();
     }
-    translate([-base_width-6, 28, 36+plate_depth])
+    translate([-base_width-6, 17+extruder_offset, 36+plate_depth])
     rotate([-90,0,90])
     {
         cage_fan();
@@ -463,7 +464,7 @@ module place_heatsink_duct() {
     translate([-base_width-6, 28, 36+plate_depth])
     rotate([-90,0,90])
     color("purple")
-    translate([13.5,28.5,0])
+    translate([extruder_offset + 3.5, 28.5, 0])
         heat_sink_duct(shell);
 }
 

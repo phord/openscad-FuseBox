@@ -6,10 +6,10 @@ module heat_sink_duct(shell) {
         heat_sink_duct_solid(0);
         heat_sink_duct_solid(shell);
 
-        translate([0,25,-sink_offset+5.5])
+        #translate([0,25,-sink_offset+2.5])
         rotate([90,0,0]) {
             // hotend cutout
-            cylinder(h=15, d=22, center=true);
+            cylinder(h=17, d=22, center=true);
             // translate([0,0,7])
             //     cylinder(h=15, d=24, center=true);
         }
@@ -51,12 +51,12 @@ module smooth_cube_bend(x, y, r) {
 module heat_sink_duct_solid(shell) {
     r=4;
     fan_sleeve();
-    translate([0,18,0])
+    translate([0,19,0])
     rotate([90,90,0])
-        smooth_cube(13-shell/3,24-shell*2,23-shell*2, r);
+        smooth_cube(13-shell/3, 24-shell*2, 26-shell*2, r);
 
-    translate([0,25,-26])
-        smooth_cube(24-shell*2,10-shell*2,5+sink_offset+shell/3, r);
+    translate([0,27,-30])
+        smooth_cube(24-shell*2, 12-shell*2, 5+sink_offset+shell/3, r);
 }
 
 module heat_sink_duct_2() {
