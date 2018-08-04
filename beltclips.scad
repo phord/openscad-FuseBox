@@ -108,6 +108,7 @@ module clip_test() {
         beltclip2(shell);
     }
 }
+shell=1.5;
 mirror([0,0,1])
 beltclip2(shell);
 clip_test();

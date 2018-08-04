@@ -6,7 +6,6 @@ holey plate can have two columns of holes if it gets wider than height/2-ish
 Bottom fan mount can be moved on top of the bltouch mount
 Top fan mount is extended into space.  Top plate needs to be lengthened to hold it.
 BLTouch mount can be moved around a bit more, but my scalar defines are not up to snuff yet.
-Something is broken with the top clips, obviously
 Beltclips scalars are duplicated in beltclips.scad. Should be passed as parameters instead.
 **/
 
@@ -117,11 +116,13 @@ module basecarriage(){
 clip_dx = 14;
 //top belt clips
 module topclip() {
-    translate([9.5,0,19.5])
+    translate([9.5,0,9.5])
+        rotate([180,0,0])
         beltclip(shell);
 
-    translate([-clip_dx+8,carriage_length+shell,19.5])
-        mirror([0,1,0])
+    translate([-clip_dx+18.75, -carriage_length-shell, 9.5])
+        rotate([0,180,0])
+        // mirror([0,1,0])
         beltclip(shell);
 }
 
@@ -138,6 +139,7 @@ module bottomclip() {
 module clips() {
     //lower belt clips
     translate([clip_dx, -0.7, -belt_height - shell])
+    mirror([0,1,0])
     topclip();
 
     //lower belt clips
@@ -147,24 +149,28 @@ module clips() {
 }
 
 module clip_cutout() {
-    translate([clip_dx,-0.010,19.5-belt_height - shell])
+    translate([clip_dx,-.010,19.5-belt_height - shell])
     beltclip_cutout(shell);
  }
 
-module topclip_cutouts() {
-    translate([9.5,0,1])
+module topclip_cutouts(dy) {
+    translate([9.5,-dy,0])
         clip_cutout();
 
-    translate([32.7,carriage_length,1])
+    translate([32.7,carriage_length+dy,0])
     rotate([0,0,180])
         clip_cutout();
 }
 
 module clip_cutouts() {
-    topclip_cutouts();
+    translate([0,0,-3])
+    topclip_cutouts(2);
+    translate([0,0,-10])
+    topclip_cutouts(2);
+    #topclip_cutouts(0);
     translate([43.35,0,0])
         rotate([180,0,180])
-        topclip_cutouts();
+        #topclip_cutouts(0);
 }
 
 module four_screw_holes(offset, d, height) {
