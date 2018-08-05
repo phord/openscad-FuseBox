@@ -113,64 +113,61 @@ module basecarriage(){
         cube([rod_spacing,carriage_length,bearing_diameter+shell*2]);
 }
 
-clip_dx = 14;
-//top belt clips
-module topclip() {
-    translate([9.5,0,9.5])
-        rotate([180,0,0])
-        beltclip(shell);
-
-    translate([-clip_dx+18.75, -carriage_length-shell, 9.5])
-        rotate([0,180,0])
-        // mirror([0,1,0])
-        beltclip(shell);
-}
-
-//bottom belt clips
-module bottomclip() {
-    translate([9.5,0,19.5])
-        beltclip2(shell);
-
-    translate([-clip_dx+8,carriage_length+shell,19.5])
-        mirror([0,1,0])
-        beltclip2(shell);
-}
-
 module clips() {
-    //lower belt clips
-    translate([clip_dx, -0.7, -belt_height - shell])
+    // Top left
+    translate([bearing_diameter/2,-shell/2,bearing_diameter/2-belt_height])
+    mirror([0,0,1])
+    beltclip(shell);
+
+    // Bottom left
+    translate([rod_spacing-bearing_diameter/2,-shell/2,-bearing_diameter/2-shell])
+    mirror([0,0,1])
+    mirror([1,0,0])
+    beltclip(shell);
+
+
+    // Bottom right
+    translate([bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell/2])
     mirror([0,1,0])
-    topclip();
+    mirror([0,0,1])
+    beltclip2(shell);
 
-    //lower belt clips
-    translate([29.35, -.8, 11])
-        rotate([180,0,180])
-        bottomclip();
-}
-
-module clip_cutout() {
-    translate([clip_dx,-.010,19.5-belt_height - shell])
-    beltclip_cutout(shell);
- }
-
-module topclip_cutouts(dy) {
-    translate([9.5,-dy,0])
-        clip_cutout();
-
-    translate([32.7,carriage_length+dy,0])
-    rotate([0,0,180])
-        clip_cutout();
+    // Top right
+    translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,bearing_diameter/2-belt_height])
+    mirror([0,0,1])
+    mirror([0,1,0])
+    mirror([1,0,0])
+    beltclip2(shell);
 }
 
 module clip_cutouts() {
-    translate([0,0,-3])
-    topclip_cutouts(2);
-    translate([0,0,-10])
-    topclip_cutouts(2);
-    #topclip_cutouts(0);
-    translate([43.35,0,0])
-        rotate([180,0,180])
-        #topclip_cutouts(0);
+    // Top left
+    translate([bearing_diameter/2,-shell/2,-bearing_diameter/2-shell])
+    for (z = [0, belt_height-1, bearing_diameter/2+shell])
+    translate([0,0,z])
+    mirror([0,0,1])
+    beltclip_cutout(shell);
+
+    // Bottom left
+    translate([rod_spacing-bearing_diameter/2,0,-bearing_diameter/2-shell])
+    mirror([0,0,1])
+    mirror([1,0,0])
+    beltclip_cutout(shell);
+
+    // Bottom right
+    translate([bearing_diameter/2,carriage_length,-bearing_diameter/2-shell])
+    mirror([0,1,0])
+    mirror([0,0,1])
+    beltclip_cutout(shell);
+
+    // Top right
+    translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell])
+    for (z = [0, belt_height-1, bearing_diameter/2+shell])
+    translate([0,0,z])
+    mirror([0,0,1])
+    mirror([0,1,0])
+    mirror([1,0,0])
+    beltclip_cutout(shell);
 }
 
 module four_screw_holes(offset, d, height) {
