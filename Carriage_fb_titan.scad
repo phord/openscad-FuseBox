@@ -13,7 +13,7 @@ use <ducting.scad>;
 use <beltclips.scad>;
 
 // Extruder mount
-extruder_offset = 7;    // Must be at least plate_depth, or else vertical wall must be removed
+extruder_offset = 4;    // Must be at least plate_depth, or else vertical wall must be removed
 plate_depth = 3;
 base_width = 28;
 
@@ -30,8 +30,9 @@ belt_post=4.5;
 belt_height=8.5;
 
 // BLTouch
-bltouch_angle=10;
-bltouch_swing=17;
+bltouch_angle=0;
+bltouch_swing=22;
+bltouch_offset=8;
 
 module bearing_cutout() {
     delta = carriage_length - bearing_length - 1;
@@ -53,6 +54,11 @@ module cutouts() {
             bearing_cutout();
         bearing_cutout();
     }
+
+    // Trim negative-y
+    translate([-carriage_length, -0.01, 0])
+    mirror([0,1,0])
+    cube([carriage_length*2, carriage_length*2, carriage_length*2]);
 
     // Cut gaps/slits in bearing pushfit tubes
     gap = 8; // Cylinder opening width
@@ -186,7 +192,7 @@ base_height = bearing_diameter/2 + plate_depth - 1.1;
 module bltouch_cutout() {
     gap = 2.5;
     // cutout
-    translate([-14-bltouch_swing,14,base_height - plate_depth - gap/2])
+    #translate([-14-bltouch_swing,bltouch_offset,base_height - plate_depth - gap/2])
     rotate([0,0,bltouch_angle]) {
         bltouch_head(gap, 5, 0.5);
 
@@ -220,15 +226,18 @@ module bltouch_head(height, r=4, extra=0) {
 module bltouch_mount() {
     gap = 2.5;
     height = plate_depth * 2 + gap;
-    interface = 15;
+    interface = 5;
 
     hull() {
-        translate([-14-bltouch_swing,14,base_height-height/2+0.1])
+        translate([-14-bltouch_swing,bltouch_offset,base_height-height/2+0.1])
         rotate([0,0,bltouch_angle]) {
             bltouch_head(height, 5);
         }
-        translate([-base_width/2, interface/2, base_height - plate_depth/2])
-            #cube([0.1, interface, plate_depth], center=true);
+        translate([-14-bltouch_swing,0,base_height-height/2+0.1])
+            bltouch_head(height, 5);
+
+        translate([-base_width+10+interface, interface/2, base_height - plate_depth/2])
+            cube([interface, interface, plate_depth], center=true);
     }
 }
 
@@ -236,7 +245,7 @@ module bltouch() {
     // TODO: Add mounting holes for BLTouch z-probe module
     // BLTouch mounting footprint
     height=2.3;
-    translate([-14-bltouch_swing,14,9.5 - plate_depth - height/2])
+    translate([-14-bltouch_swing,bltouch_offset,9.5 - plate_depth - height/2])
     rotate([0,0,bltouch_angle]) {
     difference() {
         color("white")
@@ -416,18 +425,18 @@ module cage_fan(){
 
 module place_heatsink_fan(){
     translate([8.6-base_width-plate_depth, extruder_offset-10.8,0]) {
-        translate([0.1, extruder_offset-2+plate_depth, 16.15+plate_depth])
-        rotate([-90,0,-90])
+        translate([0.1, 27+plate_depth, bearing_diameter/2-plate_depth])
+        rotate([-90,-90,90])
         mirror([0,1,0])
             raised_screw_hole();
 
-        translate([0, 15+32.7, 43+10+2*plate_depth])
+        translate([0, 12.5+32.7, 43+10+2*plate_depth])
         rotate([-90,90,-90])
         mirror([0,1,0])
             raised_screw_hole();
     }
-    translate([-base_width-6, 17+extruder_offset, 36+plate_depth])
-    rotate([-90,0,90])
+    translate([-base_width-6, 27+extruder_offset, 29+plate_depth])
+    rotate([-90,-30,90])
     {
         cage_fan();
     }
@@ -480,14 +489,14 @@ module carriage(){
 
             place_heatsink_fan();
             // place_cooling_fan();
-            place_heatsink_duct();
+            // place_heatsink_duct();
             place_bltouch();
             place_bltouch_mount();
         }
         cutouts();
     }
     clips();
-    place_heatsink_duct();
+    // place_heatsink_duct();
 }
 
 // Place a mountpoint against a flat surface
