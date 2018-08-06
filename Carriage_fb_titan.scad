@@ -435,8 +435,8 @@ module place_heatsink_fan(){
         mirror([0,1,0])
             raised_screw_hole();
     }
-    translate([-base_width-6, 27+extruder_offset, 29+plate_depth])
-    rotate([-90,-30,90])
+    translate([-base_width-6, 14.5+extruder_offset, 36+plate_depth])
+    rotate([-90,0,90])
     {
         cage_fan();
     }
@@ -489,7 +489,7 @@ module carriage(){
 
             place_heatsink_fan();
             // place_cooling_fan();
-            // place_heatsink_duct();
+            place_heatsink_duct();
             place_bltouch();
             place_bltouch_mount();
         }
