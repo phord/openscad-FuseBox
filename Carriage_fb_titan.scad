@@ -16,6 +16,7 @@ use <beltclips.scad>;
 extruder_offset = 4;    // Must be at least plate_depth, or else vertical wall must be removed
 plate_depth = 3;
 base_width = 28;
+hotend_displacement = 4;    // Horizontal offset from center of carriage
 
 //Carriage dimensions
 bearing_length=45;
@@ -30,9 +31,10 @@ belt_post=4.5;
 belt_height=8.5;
 
 // BLTouch
-bltouch_angle=0;
-bltouch_swing=22;
-bltouch_offset=8;
+bltouch_angle=45;
+bltouch_swing=15;
+bltouch_z_offset=3.5;
+bltouch_offset=12;
 
 module bearing_cutout() {
     delta = carriage_length - bearing_length - 1;
@@ -56,7 +58,7 @@ module cutouts() {
     }
 
     // Trim negative-y
-    translate([-carriage_length, -0.01, 0])
+    translate([-carriage_length, -0.01, -10])
     mirror([0,1,0])
     cube([carriage_length*2, carriage_length*2, carriage_length*2]);
 
@@ -76,6 +78,7 @@ module cutouts() {
 
     // cut hotend hole
     spacing = rod_spacing-bearing_diameter-shell*2 - 1;
+    translate([hotend_displacement, 0, 0])
     translate([19.5,47/2,32])
     rotate([0,-90,0])
     translate([0, -5/2, 0]) {
@@ -192,23 +195,30 @@ base_height = bearing_diameter/2 + plate_depth - 1.1;
 module bltouch_cutout() {
     gap = 2.5;
     // cutout
-    #translate([-14-bltouch_swing,bltouch_offset,base_height - plate_depth - gap/2])
+    translate([hotend_displacement, 0, 0])
+    translate([-14-bltouch_swing,bltouch_offset,base_height - plate_depth - gap/2 - bltouch_z_offset])
     rotate([0,0,bltouch_angle]) {
         bltouch_head(gap, 5, 0.5);
 
         translate([0,0,-34/2])
+        // hull()
+        {
             cylinder(d=13.5, h=34+plate_depth/2, center=true);
-        cylinder(d=3, h=plate_depth*3, center=true);
+            translate([0,5,0])
+                cube([12, 5, 34+plate_depth/2], center=true);
+
+        }
+        cylinder(d=3, h=plate_depth*5, center=true);
 
         translate([0,0,-34/2-plate_depth-gap-.1])
             cylinder(d=17, h=34, center=true);
 
         for (y=[-9, 9]) {
-            translate([y, 0, 0])
-                cylinder(d=3, h=plate_depth*3, center=true);
-            translate([y, 0, -plate_depth*1.5])
+            translate([y, 0, plate_depth/2])
+                cylinder(d=3, h=plate_depth*5, center=true);
+            translate([y, 0, plate_depth-0.1])
                 rotate([0,0,30])
-                m3_nut(plate_depth/2);
+                m3_nut(plate_depth);
         }
     }
 }
@@ -228,16 +238,17 @@ module bltouch_mount() {
     height = plate_depth * 2 + gap;
     interface = 5;
 
+    translate([hotend_displacement, 0, 0])
     hull() {
-        translate([-14-bltouch_swing,bltouch_offset,base_height-height/2+0.1])
+        translate([-14-bltouch_swing,bltouch_offset,base_height-height/2+0.1 - bltouch_z_offset])
         rotate([0,0,bltouch_angle]) {
             bltouch_head(height, 5);
         }
-        translate([-14-bltouch_swing,0,base_height-height/2+0.1])
-            bltouch_head(height, 5);
 
-        translate([-base_width+10+interface, interface/2, base_height - plate_depth/2])
-            cube([interface, interface, plate_depth], center=true);
+        translate([-base_width+10+interface, interface/2, base_height - plate_depth/2 - bltouch_z_offset])
+            cube([interface+1, interface, plate_depth + bltouch_z_offset], center=true);
+        translate([-base_width+10+interface, -interface/2, base_height - plate_depth/2 - bltouch_z_offset])
+            cube([interface+1, interface, plate_depth + bltouch_z_offset], center=true);
     }
 }
 
@@ -245,7 +256,8 @@ module bltouch() {
     // TODO: Add mounting holes for BLTouch z-probe module
     // BLTouch mounting footprint
     height=2.3;
-    translate([-14-bltouch_swing,bltouch_offset,9.5 - plate_depth - height/2])
+    translate([hotend_displacement, 0, 0])
+    translate([-14-bltouch_swing,bltouch_offset,9.5 - plate_depth - height/2 - bltouch_z_offset])
     rotate([0,0,bltouch_angle]) {
     difference() {
         color("white")
@@ -349,6 +361,7 @@ module holey_plate(x,y) {
 }
 
 module titanmount(){
+    translate([hotend_displacement, 0, 0])
     rotate([-90,0,0])
     difference() {
         translate([21.6-13.5,-43.2/2-6.5-shell,21.5])
@@ -424,6 +437,7 @@ module cage_fan(){
 }
 
 module place_heatsink_fan(){
+    translate([hotend_displacement, 0, 0])
     translate([8.6-base_width-plate_depth, extruder_offset-10.8,0]) {
         translate([0.1, 27+plate_depth, bearing_diameter/2-plate_depth])
         rotate([-90,-90,90])
@@ -435,6 +449,7 @@ module place_heatsink_fan(){
         mirror([0,1,0])
             raised_screw_hole();
     }
+    translate([hotend_displacement, 0, 0])
     translate([-base_width-6, 14.5+extruder_offset, 36+plate_depth])
     rotate([-90,0,90])
     {
@@ -473,6 +488,7 @@ module place_bltouch_mount(){
 }
 
 module place_heatsink_duct() {
+    translate([hotend_displacement, 0, 0])
     translate([-base_width-6, 28, 36+plate_depth])
     rotate([-90,0,90])
     color("purple")
@@ -520,11 +536,11 @@ module raised_screw_hole(d=7.82) {
 
 //Place e3d-titan for alignment comparison
 module e3TitanPlacement(){
-    translate([19,47/2 + extruder_offset, 32])
+    translate([19 + hotend_displacement,47/2 + extruder_offset, 32])
     rotate([0,-90,0])
         e3dtitan();
 
-    translate([6.5-plate_depth,43/2 + extruder_offset,31])
+    translate([6.5-plate_depth + hotend_displacement,43/2 + extruder_offset,31])
     rotate([0,-90,0])
         titan_motor();
 }
