@@ -209,3 +209,6 @@ module fan_sleeve() {
         cylinder(d=48, h=22, center=true);
     }
 }
+
+rotate([-90,0,0])
+    heat_sink_duct(shell);
