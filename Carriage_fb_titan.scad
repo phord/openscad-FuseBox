@@ -437,8 +437,9 @@ module cage_fan(){
 
 module place_heatsink_fan(){
     translate([hotend_displacement, 0, 0])
-    translate([8.6-base_width-plate_depth, extruder_offset-10.8,0]) {
-        translate([0.1, 27+plate_depth, bearing_diameter/2-plate_depth])
+    translate([8.6-base_width-plate_depth, extruder_offset-7.8,0]) {
+        translate([0.1, 43+plate_depth-0.3, bearing_diameter/2-plate_depth-2+0.1])
+        mirror([1,0,0])
         rotate([-90,-90,90])
         mirror([0,1,0])
             raised_screw_hole();
@@ -449,7 +450,7 @@ module place_heatsink_fan(){
             raised_screw_hole();
     }
     translate([hotend_displacement, 0, 0])
-    translate([-base_width-6, 14.5+extruder_offset, 36+plate_depth])
+    translate([-base_width-6, 17.5+extruder_offset, 36+plate_depth])
     rotate([-90,0,90])
     {
         cage_fan();
