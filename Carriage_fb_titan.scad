@@ -30,6 +30,9 @@ belt_gap=1.5;
 belt_post=4.5;
 belt_height=8.5;
 
+lower_belt_z = 1.5;
+upper_belt_z = bearing_diameter - 2;
+
 // BLTouch
 bltouch_angle=45;
 bltouch_swing=15;
@@ -124,26 +127,24 @@ module basecarriage(){
 
 module clips() {
     // Top left
-    translate([bearing_diameter/2,-shell/2,bearing_diameter/2-belt_height])
-    mirror([0,0,1])
-    beltclip(shell);
+    translate([bearing_diameter/2+hotend_displacement/2,-shell/2,bearing_diameter/2-belt_height+upper_belt_z])
+    beltclip2(shell);
 
     // Bottom left
-    translate([rod_spacing-bearing_diameter/2,-shell/2,-bearing_diameter/2-shell])
+    translate([rod_spacing-bearing_diameter/2,-shell/2,-bearing_diameter/2-shell+lower_belt_z])
     mirror([0,0,1])
     mirror([1,0,0])
     beltclip(shell);
 
 
     // Bottom right
-    translate([bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell/2])
+    translate([bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell/2+lower_belt_z])
     mirror([0,1,0])
     mirror([0,0,1])
-    beltclip2(shell);
+    beltclip(shell);
 
     // Top right
-    translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,bearing_diameter/2-belt_height])
-    mirror([0,0,1])
+    translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,bearing_diameter/2-belt_height+upper_belt_z])
     mirror([0,1,0])
     mirror([1,0,0])
     beltclip2(shell);
@@ -151,29 +152,27 @@ module clips() {
 
 module clip_cutouts() {
     // Top left
-    translate([bearing_diameter/2,-shell/2,-bearing_diameter/2-shell])
-    for (z = [0, belt_height-1, bearing_diameter/2+shell])
-    translate([0,0,z])
-    mirror([0,0,1])
+    translate([bearing_diameter/2+hotend_displacement/2,-shell/2,bearing_diameter/2-belt_height+upper_belt_z])
     beltclip_cutout(shell);
 
     // Bottom left
     translate([rod_spacing-bearing_diameter/2,0,-bearing_diameter/2-shell])
+    for (z=[0,-5])
+    translate([0,0,z])
     mirror([0,0,1])
     mirror([1,0,0])
     beltclip_cutout(shell);
 
     // Bottom right
-    translate([bearing_diameter/2,carriage_length,-bearing_diameter/2-shell])
+    translate([bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell/2+lower_belt_z])
+    for (z=[0,-5])
+    translate([0,0,z])
     mirror([0,1,0])
     mirror([0,0,1])
     beltclip_cutout(shell);
 
     // Top right
-    translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell])
-    for (z = [0, belt_height-1, bearing_diameter/2+shell])
-    translate([0,0,z])
-    mirror([0,0,1])
+    #translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,bearing_diameter/2-belt_height+upper_belt_z])
     mirror([0,1,0])
     mirror([1,0,0])
     beltclip_cutout(shell);
