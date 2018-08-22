@@ -28,7 +28,7 @@ carriage_offset_z=3.5;
 carriage_thickness=bearing_diameter/2;
 
 // Belt clips
-belt_gap=1.5;
+belt_gap=1.4;
 belt_post=4.5;
 belt_height=8.5;
 
@@ -122,9 +122,19 @@ module bearingtube(){
 module basecarriage(){
     rotate([-90,0,0])
         bearingtube();
+    hull(){
+        difference() {
+            rotate([-90,0,0])
+                bearingtube();
+            translate([-bearing_diameter-1,0,6-bearing_diameter])
+                cube([rod_spacing+bearing_diameter*2,carriage_length+1,bearing_diameter+carriage_offset_z-carriage_thickness]);
+        }
 
-    translate([0,0,6.5-bearing_diameter])
-        cube([rod_spacing,carriage_length,bearing_diameter+shell*2]);
+    translate([-bearing_diameter/2,0,9.3-carriage_thickness+carriage_offset_z])
+        cube([rod_spacing,bearing_length,carriage_thickness]);
+    }
+    // translate([bearing_diameter/2,0,6.5-bearing_diameter+carriage_offset_z])
+    //     cube([rod_spacing-bearing_diameter,carriage_length,carriage_thickness]);
 }
 
 module clips() {
@@ -155,6 +165,8 @@ module clips() {
 module clip_cutouts() {
     // Top left
     translate([bearing_diameter/2+hotend_displacement/2,-shell/2,bearing_diameter/2-belt_height+upper_belt_z])
+    for (z=[0,5])
+    translate([0,0,z])
     beltclip_cutout(shell);
 
     // Bottom left
@@ -174,7 +186,9 @@ module clip_cutouts() {
     beltclip_cutout(shell);
 
     // Top right
-    #translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,bearing_diameter/2-belt_height+upper_belt_z])
+    translate([rod_spacing-bearing_diameter/2,carriage_length+shell/2,bearing_diameter/2-belt_height+upper_belt_z])
+    for (z=[0,5])
+    translate([0,0,z])
     mirror([0,1,0])
     mirror([1,0,0])
     beltclip_cutout(shell);

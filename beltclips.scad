@@ -2,7 +2,7 @@ $fn=64;
 
 // Belt clips
 belt_gap=1.5;
-belt_post=4.5;
+belt_post=2.5;
 belt_height=8.5;
 
 module beltclip_shell(shell, extra) {
@@ -46,34 +46,44 @@ module beltclip_(shell, p){
 
     translate([dx/2, dy/2, -dz/2]) {
         difference(){
-            beltclip_shell(shell, shell);
+            union() {
+                difference(){
+                    beltclip_shell(shell, shell);
 
-            // cut the left path
-            translate([-x1,-0.1,shell])
-                cube([belt_gap, dy+0.1, dz+0.1], center=true);
+                    // cut the left path
+                    translate([-x1,-0.1,shell])
+                        cube([belt_gap, dy+0.1, dz+0.1], center=true);
 
-            // cut the right path
-            translate([x1,-0.1,shell])
-                cube([belt_gap, dy+0.1, dz+0.1], center=true);
+                    // cut the right path
+                    translate([x1,-0.1,shell])
+                        cube([belt_gap, dy+0.1, dz+0.1], center=true);
 
-            // Cut an angle in the interface for printing
+                    // Cut an angle in the interface for printing
+                    translate([0, dy/2, 0])
+                        rotate([20,0,0])
+                        cube([dx+0.1, 5, dz*1.4], center=true); // tbd: center
+                }
+
+                difference() {
+                    beltclip_shell(shell, shell);
+                    // Cut an angle in the interface for printing
+                    translate([0,-0.1,0.1])
+                        beltclip_shell(shell, 0.1);
+                    // translate([0,0,belt_post*3-1])
+                    // #cube([belt_post*3, belt_post*3, belt_post*3], center=true);
+                }
+
+                // Insert the belt teeth, 2mm apart
+                for (y=[1,3,5,7,9]) {
+                    translate([-x2, y-dy/2+0.5, 0])
+                        cylinder(d=1, h=dz, center=true);
+                    translate([x2, y-dy/2+0.5, 0])
+                        cylinder(d=1, h=dz, center=true);
+                }
+            }
             translate([0, dy/2, 0])
                 rotate([20,0,0])
                 cube([dx+0.1, 5, dz*1.4], center=true); // tbd: center
-        }
-
-        difference() {
-            beltclip_shell(shell, shell);
-            translate([0,-0.1,0.1])
-                beltclip_shell(shell, 0.1);
-        }
-
-        // Insert the belt teeth, 2mm apart
-        for (y=[1,3,5,7]) {
-            translate([-x2, y-dy/2+0.5, 0])
-                cylinder(d=1, h=dz, center=true);
-            translate([x2, y-dy/2+0.5, 0])
-                cylinder(d=1, h=dz, center=true);
         }
     }
 }
