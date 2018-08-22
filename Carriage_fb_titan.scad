@@ -13,8 +13,8 @@ use <ducting.scad>;
 use <beltclips.scad>;
 
 // Extruder mount
-extruder_offset = 4;    // Must be at least plate_depth, or else vertical wall must be removed
-plate_depth = 3;
+extruder_offset = 2.5;    // Must be at least plate_depth, or else vertical wall must be removed
+plate_depth = 2.5;
 base_width = 28;
 hotend_displacement = 4;    // Horizontal offset from center of carriage
 
@@ -22,7 +22,7 @@ hotend_displacement = 4;    // Horizontal offset from center of carriage
 bearing_length=45;
 bearing_diameter=15.2;
 rod_spacing=43.25;
-carriage_length=bearing_length+13 + extruder_offset;
+carriage_length=bearing_length + 12 + extruder_offset;
 shell = 1.5; // thickness of bearing shell
 carriage_offset_z=3.5;
 carriage_thickness=bearing_diameter/2;
@@ -508,7 +508,7 @@ module place_heatsink_duct() {
     translate([-base_width-6, 28, 36+plate_depth])
     rotate([-90,0,90])
     color("purple")
-    translate([extruder_offset + 3.5, 28.5, 0])
+    %translate([extruder_offset + 3.5, 28.5, 0])
         heat_sink_duct(shell);
 }
 
