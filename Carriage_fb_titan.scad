@@ -24,7 +24,7 @@ bearing_diameter=15.2;
 rod_spacing=43.25;
 carriage_length=bearing_length + 12 + extruder_offset;
 shell = 1.5; // thickness of bearing shell
-carriage_offset_z=3.5;
+carriage_offset_z=7.5;
 carriage_thickness=bearing_diameter/2;
 
 // Belt clips
@@ -32,13 +32,13 @@ belt_gap=1.4;
 belt_post=4.5;
 belt_height=8.5;
 
-lower_belt_z = 1.5;
-upper_belt_z = bearing_diameter - 2;
+lower_belt_z = carriage_offset_z - 2;
+upper_belt_z = bearing_diameter - 5.5 + carriage_offset_z ;
 
 // BLTouch
 bltouch_angle=45;
 bltouch_swing=15;
-bltouch_z_offset=3.5 - carriage_offset_z;
+bltouch_z_offset=10.5 - carriage_offset_z;
 bltouch_offset=12;
 
 module bearing_cutout() {
@@ -126,7 +126,7 @@ module basecarriage(){
         difference() {
             rotate([-90,0,0])
                 bearingtube();
-            translate([-bearing_diameter-1,0,6-bearing_diameter])
+            translate([-bearing_diameter-1,-0.1,6-bearing_diameter])
                 cube([rod_spacing+bearing_diameter*2,carriage_length+1,bearing_diameter+carriage_offset_z-carriage_thickness]);
         }
 
@@ -140,17 +140,17 @@ module basecarriage(){
 module clips() {
     // Top left
     translate([bearing_diameter/2+hotend_displacement/2,-shell/2,bearing_diameter/2-belt_height+upper_belt_z])
-    beltclip2(shell);
+    beltclip(shell);
 
     // Bottom left
     translate([rod_spacing-bearing_diameter/2,-shell/2,-bearing_diameter/2-shell+lower_belt_z])
     mirror([0,0,1])
     mirror([1,0,0])
-    beltclip(shell);
+    beltclip2(shell);
 
 
     // Bottom right
-    translate([bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell/2+lower_belt_z])
+    translate([bearing_diameter/2 + 2.5,carriage_length+shell/2,-bearing_diameter/2-shell/2+lower_belt_z])
     mirror([0,1,0])
     mirror([0,0,1])
     beltclip(shell);
@@ -170,7 +170,7 @@ module clip_cutouts() {
     beltclip_cutout(shell);
 
     // Bottom left
-    translate([rod_spacing-bearing_diameter/2,0,-bearing_diameter/2-shell])
+    translate([rod_spacing-bearing_diameter/2,0,-bearing_diameter/2-shell+lower_belt_z])
     for (z=[0,-5])
     translate([0,0,z])
     mirror([0,0,1])
@@ -178,7 +178,7 @@ module clip_cutouts() {
     beltclip_cutout(shell);
 
     // Bottom right
-    translate([bearing_diameter/2,carriage_length+shell/2,-bearing_diameter/2-shell/2+lower_belt_z])
+    translate([bearing_diameter/2 + 2.5,carriage_length+shell/2,-bearing_diameter/2-shell/2+lower_belt_z])
     for (z=[0,-5])
     translate([0,0,z])
     mirror([0,1,0])
@@ -469,7 +469,7 @@ module place_heatsink_fan(){
     translate([-base_width-6, 17.5+extruder_offset, 36+plate_depth])
     rotate([-90,0,90])
     {
-        cage_fan();
+       // cage_fan();
     }
 }
 
@@ -567,5 +567,5 @@ module e3TitanPlacement(){
 
 rotate([90,0,0]) {
     carriage();
-    %e3TitanPlacement();
+   %e3TitanPlacement();
 }
