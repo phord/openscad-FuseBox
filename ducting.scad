@@ -6,10 +6,10 @@ module heat_sink_duct(shell) {
         heat_sink_duct_solid(0);
         heat_sink_duct_solid(shell);
 
-        translate([0,25,-sink_offset+2.5])
+        translate([0,23.5-4,-sink_offset+2.5])
         rotate([90,0,0]) {
             // hotend cutout
-            cylinder(h=17, d=22, center=true);
+            cylinder(h=21.5, d=22, center=true);
             // translate([0,0,7])
             //     cylinder(h=15, d=24, center=true);
         }
@@ -32,7 +32,7 @@ module smooth_cube(x,y,z,r) {
         for (X=[-x/2+r,x/2-r]) {
             for (Y=[-y/2+r,y/2-r]) {
                 translate([X,Y,0])
-                cylinder(r=r, h=z, center=true);
+                cylinder(r=r, h=z, center=true, $fn=30);
             }
         }
     }
@@ -48,16 +48,64 @@ module smooth_cube_bend(x, y, r) {
     }
 }
 
+module heat_sink_bend(shell) {
+    r=4;
+    depth=5;
+    width=14;
+    translate([0,21-8-shell,0])
+    rotate([90,90,0])
+        smooth_cube(width+1-shell*2, 24-shell*2, 8+shell, r);
+
+}
+
+module hsd_slice(y, z, a, length, shell, width=14) {
+    r=min(5,width/2.5);
+    translate([0,y,z])
+    rotate([a,0,0])
+    translate([0,shell/2,0]) {
+        smooth_cube(24-shell*2, width+1-shell*2, length-2, r);
+        if (length>4)
+            translate([0,0,-length/2+1.5])
+            hull()
+            for (theta = [0,-11,-22,-33,-45])
+                rotate([theta,0,0])
+                    smooth_cube(24-shell*2, (width+1-shell*2)*cos(theta/2), 1, r);
+    }
+}
+
 module heat_sink_duct_solid(shell) {
     r=4;
+    depth=4;
+    length=40;
+
     if (shell==0)
         fan_sleeve();
-    translate([0,21-shell,0])
-    rotate([90,90,0])
-        smooth_cube(13-shell*2, 24-shell*2, 24+shell, r);
 
-    translate([0,27,-30])
-        smooth_cube(24-shell*2, 12-shell*2, 12+sink_offset+shell/3, r);
+    translate([0, 27+depth, 0]) {
+        hull() {
+            hsd_slice(-17-depth-shell, 0, 90, 3, shell,18);
+            hsd_slice(-12-depth-shell, 0, 55, 5.9+depth+shell/2, shell, 6-shell);
+        }
+        hsd_slice(-7.2, -8, 45, 23, shell, 6-shell*2);
+        hsd_slice(-0.3, -length/2-6, 0, sink_offset+length-72, shell, 6-shell*2);
+        hsd_slice(-9-shell, -length-2, -60, 24, shell, 5-shell*2);
+
+        scoop=19;
+        translate([0,-2-scoop/2,-length-11])
+        rotate([90,0,0])
+            smooth_cube(25-shell*2, 19-shell*2, scoop+2-shell*2, r);
+        translate([0,-2-scoop/2,-length-14])
+        rotate([90,0,0])
+            cylinder(d=25-shell*2, h=scoop+2-shell*2, center=true);
+        translate([0,-2-scoop/2,-length-20-shell])
+        rotate([90,0,0])
+            cube([14+shell/10, 12+shell/10, scoop+2+shell/10], center=true);
+
+        // Add custom support
+        translate([0, 1.2, -8-length-5])
+        rotate([90,0,0])
+            cube([24-shell*2, 23-shell*4, 4+shell/10], center=true);
+    }
 }
 
 module heat_sink_duct_2() {
@@ -198,7 +246,9 @@ module fan_sleeve() {
                 rect_ducting(10);
             }
         }
-        translate([0,0,0])  cube([17,30,13],center=true);
+        translate([6,22,0])
+            cylinder(d=4, h=30, center=true);
+        // #translate([0,7,0])  cube([17,30,13],center=true);
         translate([0,25,0])
         // rotate([0,90,90])
             cube([17,30,13],center=true);
@@ -211,4 +261,8 @@ module fan_sleeve() {
 }
 
 rotate([-90,0,0])
-    heat_sink_duct(shell);
+        heat_sink_duct(1.5);
+    // difference() {
+    //     heat_sink_duct(1);
+    //     heat_sink_duct(0);
+    // }
